@@ -1,78 +1,244 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Параметры Аппаратов | 40/2</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-</head>
-<body class="bg-light">
+<!-- templates/refrigeration/schema.html -->
+{% extends 'base.html' %}
+{% load static %}
 
-<div class="container mt-5">
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="bi bi-table me-2"></i> Холодильное отделение: Контроль параметров</h5>
-            <a href="{% url 'index' %}" class="btn btn-outline-light btn-sm">На главную</a>
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Схема холодильного отделения</h3>
+                </div>
+                <div class="card-body">
+                    <svg id="refrigeration-schema" width="100%" height="600" viewBox="0 0 1200 600">
+                        <!-- Трубопроводы (линии) будут отрисованы через JS -->
+                        <g id="lines-group"></g>
+                        
+                        <!-- Элементы схемы будут добавлены через JS -->
+                        <g id="elements-group"></g>
+                    </svg>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-            <table class="table table-hover align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>Позиция</th>
-                        <th>Наименование аппарата</th>
-                        <th>Давление (кгс/см²)</th>
-                        <th>Температура (°C)</th>
-                        <th class="text-center">Настройка</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for app in apparatus_list %}
-                    <tr>
-                        <td><span class="badge bg-secondary">{{ app.position }}</span></td>
-                        <td>{{ app.name }}</td>
-                        <td><strong class="text-primary">{{ app.pressure }}</strong></td>
-                        <td><strong class="text-danger">{{ app.temperature }}</strong></td>
-                        <td class="text-center">
-                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#edit{{ app.id }}">
-                                <i class="bi bi-sliders"></i>
-                            </button>
-                        </td>
-                    </tr>
-
-                    <div class="modal fade" id="edit{{ app.id }}" tabindex="-1">
-                        <div class="modal-dialog modal-sm">
-                            <div class="modal-content shadow">
-                                <form action="{% url 'update_params' %}" method="POST">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="app_id" value="{{ app.id }}">
-                                    <div class="modal-header bg-light">
-                                        <h6 class="modal-title">Параметры {{ app.position }}</h6>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body text-start">
-                                        <div class="mb-3">
-                                            <label class="form-label small fw-bold">Давление</label>
-                                            <input type="number" step="0.1" name="pressure" class="form-control" value="{{ app.pressure }}">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label small fw-bold">Температура</label>
-                                            <input type="number" step="0.1" name="temperature" class="form-control" value="{{ app.temperature }}">
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="submit" class="btn btn-success w-100">Сохранить</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
+        
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Параметры элемента</h4>
+                </div>
+                <div class="card-body" id="element-details">
+                    <p>Выберите элемент на схеме</p>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h4>Общие показатели</h4>
+                </div>
+                <div class="card-body">
+                    <div id="overall-stats">
+                        <p>Средняя температура: <span id="avg-temp">--</span>°C</p>
+                        <p>Активных элементов: <span id="active-count">{{ elements.count }}</span></p>
                     </div>
-                    {% endfor %}
-                </tbody>
-            </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+<script>
+const elements = {{ elements_json|safe }};
+const lines = {{ lines_json|safe }};
+
+function drawSchema() {
+    const svg = document.getElementById('refrigeration-schema');
+    const elementsGroup = document.getElementById('elements-group');
+    const linesGroup = document.getElementById('lines-group');
+    
+    // Рисуем линии
+    lines.forEach(line => {
+        const start = elements.find(e => e.id === line.start_element);
+        const end = elements.find(e => e.id === line.end_element);
+        
+        if (start && end) {
+            const lineElement = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            lineElement.setAttribute("x1", start.position_x);
+            lineElement.setAttribute("y1", start.position_y);
+            lineElement.setAttribute("x2", end.position_x);
+            lineElement.setAttribute("y2", end.position_y);
+            lineElement.setAttribute("stroke", getLineColor(line.temperature));
+            lineElement.setAttribute("stroke-width", "3");
+            lineElement.setAttribute("data-id", line.id);
+            linesGroup.appendChild(lineElement);
+        }
+    });
+    
+    // Рисуем элементы
+    elements.forEach(element => {
+        const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        group.setAttribute("transform", `translate(${element.position_x}, ${element.position_y})`);
+        group.setAttribute("data-id", element.id);
+        group.setAttribute("class", "schema-element");
+        group.setAttribute("onclick", `showElementDetails(${element.id})`);
+        
+        // Иконка элемента в зависимости от типа
+        const icon = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        icon.setAttribute("r", "20");
+        icon.setAttribute("fill", getElementColor(element.status));
+        icon.setAttribute("stroke", "#333");
+        icon.setAttribute("stroke-width", "2");
+        
+        // Температура внутри элемента
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("dy", "0.3em");
+        text.setAttribute("fill", "white");
+        text.setAttribute("font-size", "12");
+        text.textContent = `${element.temperature}°C`;
+        
+        group.appendChild(icon);
+        group.appendChild(text);
+        elementsGroup.appendChild(group);
+        
+        // Подпись элемента
+        const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        label.setAttribute("x", element.position_x - 15);
+        label.setAttribute("y", element.position_y + 35);
+        label.setAttribute("fill", "#666");
+        label.setAttribute("font-size", "12");
+        label.textContent = element.name;
+        elementsGroup.appendChild(label);
+    });
+}
+
+function getElementColor(status) {
+    const colors = {
+        'normal': '#28a745',
+        'warning': '#ffc107',
+        'alarm': '#dc3545',
+        'off': '#6c757d'
+    };
+    return colors[status] || '#28a745';
+}
+
+function getLineColor(temperature) {
+    if (temperature < -10) return '#00a8ff'; // Синий
+    if (temperature < 0) return '#9c88ff';   // Фиолетовый
+    if (temperature < 5) return '#fbc531';   // Желтый
+    return '#e84118';                          // Красный
+}
+
+function showElementDetails(elementId) {
+    const element = elements.find(e => e.id === elementId);
+    const detailsDiv = document.getElementById('element-details');
+    
+    detailsDiv.innerHTML = `
+        <h5>${element.name}</h5>
+        <p>Тип: ${element.element_type_display}</p>
+        <p>Температура: ${element.temperature}°C</p>
+        <p>Давление: ${element.pressure} бар</p>
+        <p>Статус: <span class="badge bg-${getStatusClass(element.status)}">${element.status_display}</span></p>
+        <hr>
+        <button class="btn btn-sm btn-primary" onclick="editElement(${element.id})">Редактировать</button>
+        <button class="btn btn-sm btn-info" onclick="showHistory(${element.id})">История</button>
+    `;
+}
+
+function getStatusClass(status) {
+    const classes = {
+        'normal': 'success',
+        'warning': 'warning',
+        'alarm': 'danger',
+        'off': 'secondary'
+    };
+    return classes[status] || 'secondary';
+}
+
+function editElement(elementId) {
+    // Открыть модальное окно для редактирования
+    $('#editModal').modal('show');
+    // Загрузить данные элемента в форму
+    loadElementData(elementId);
+}
+
+function updateElementData() {
+    // Отправить AJAX запрос для обновления данных
+    $.ajax({
+        url: '/api/update-element/',
+        method: 'POST',
+        data: {
+            id: $('#element-id').val(),
+            temperature: $('#temperature').val(),
+            pressure: $('#pressure').val(),
+            status: $('#status').val(),
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+        success: function(response) {
+            $('#editModal').modal('hide');
+            location.reload(); // Перезагрузить страницу для обновления схемы
+        }
+    });
+}
+
+// Инициализация
+drawSchema();
+
+// Автоматическое обновление каждые 30 секунд
+setInterval(function() {
+    $.get('/api/get-current-data/', function(data) {
+        // Обновить данные на схеме
+        updateSchemaData(data);
+    });
+}, 30000);
+</script>
+
+<!-- Модальное окно для редактирования -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Редактирование элемента</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="element-id">
+                <div class="mb-3">
+                    <label>Температура (°C)</label>
+                    <input type="number" step="0.1" class="form-control" id="temperature">
+                </div>
+                <div class="mb-3">
+                    <label>Давление (бар)</label>
+                    <input type="number" step="0.1" class="form-control" id="pressure">
+                </div>
+                <div class="mb-3">
+                    <label>Статус</label>
+                    <select class="form-control" id="status">
+                        <option value="normal">Норма</option>
+                        <option value="warning">Предупреждение</option>
+                        <option value="alarm">Авария</option>
+                        <option value="off">Выключено</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <button type="button" class="btn btn-primary" onclick="updateElementData()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.schema-element {
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.schema-element:hover {
+    filter: brightness(0.9);
+}
+.schema-element text {
+    pointer-events: none;
+}
+</style>
+{% endblock %}

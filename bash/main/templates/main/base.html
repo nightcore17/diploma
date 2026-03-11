@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Установка 40/2</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 51, 160, 0.15);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .navbar-brand span {
+            background: linear-gradient(135deg, #0033a0 0%, #ff0000 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+        
+        .navbar-brand:hover {
+            transform: scale(1.02);
+            transition: transform 0.3s ease;
+        }
+        
+        .btn-bashneft {
+            background: linear-gradient(135deg, #0033a0 0%, #ff0000 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-bashneft:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 51, 160, 0.4);
+            color: white;
+        }
+        
+        .main-container {
+            padding: 2rem;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 51, 160, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 51, 160, 0.2);
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #0033a0 0%, #ff0000 100%);
+            border-radius: 15px;
+            padding: 1.5rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(45deg);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover::before {
+            transform: rotate(45deg) translate(10%, 10%);
+        }
+        
+        .stat-icon {
+            font-size: 2.5rem;
+            opacity: 0.3;
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .schema-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 51, 160, 0.1);
+        }
+        
+        .schema-element {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+        }
+        
+        .schema-element:hover {
+            filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.2));
+            transform: scale(1.1);
+        }
+        
+        .schema-element circle {
+            transition: all 0.3s ease;
+        }
+        
+        .schema-element:hover circle {
+            stroke: #0033a0;
+            stroke-width: 3;
+        }
+        
+        .info-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 1.5rem;
+            height: fit-content;
+            box-shadow: 0 8px 32px rgba(0, 51, 160, 0.1);
+        }
+        
+        .element-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .badge-normal {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            color: white;
+        }
+        
+        .badge-warning {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            color: white;
+        }
+        
+        .badge-alarm {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            color: white;
+        }
+        
+        .temperature-gradient {
+            background: linear-gradient(90deg, #0033a0, #0066cc);
+            color: white;
+        }
+        
+        .pressure-gradient {
+            background: linear-gradient(90deg, #ff0000, #ff4444);
+            color: white;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        .connection-line {
+            stroke: #cbd5e0;
+            stroke-width: 2;
+            stroke-dasharray: 5,5;
+            transition: all 0.3s ease;
+        }
+        
+        .connection-line:hover {
+            stroke: #0033a0;
+            stroke-width: 3;
+        }
+        
+        .nav-link {
+            color: #333 !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            color: #0033a0 !important;
+            transform: translateY(-2px);
+        }
+        
+        .nav-link i {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg glass-nav">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
+                {% load static %}
+                <img src="{% static 'img/logo.png' %}" alt="Башнефть" height="45" class="me-3">
+                <span>Башнефть - Холодильное отделение</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-graph-up"></i> Аналитика
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-clock-history"></i> История
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-gear"></i> Настройки
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid main-container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

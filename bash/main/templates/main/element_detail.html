@@ -1,0 +1,88 @@
+{% extends 'main/base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="glass-card">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3>
+                    <i class="bi bi-cpu me-2" style="color: #0033a0;"></i>
+                    {{ element.name }}
+                </h3>
+                <span class="element-badge badge-{{ element.status }}">
+                    {{ element.get_status_display }}
+                </span>
+            </div>
+            
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #0033a0 0%, #0066cc 100%);">
+                        <div class="stat-value">{{ element.temperature }}°C</div>
+                        <div class="stat-label">Температура</div>
+                        <i class="bi bi-thermometer-snow stat-icon"></i>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #ff0000 0%, #ff4444 100%);">
+                        <div class="stat-value">{{ element.pressure }} бар</div>
+                        <div class="stat-label">Давление</div>
+                        <i class="bi bi-speedometer2 stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="glass-card">
+                        <h5 class="mb-3"><i class="bi bi-info-circle me-2" style="color: #0033a0;"></i>Информация</h5>
+                        <p><strong>Тип:</strong> {{ element.get_element_type_display }}</p>
+                        <p><strong>Позиция X:</strong> {{ element.pos_x }}</p>
+                        <p><strong>Позиция Y:</strong> {{ element.pos_y }}</p>
+                        <p><strong>ID:</strong> {{ element.id }}</p>
+                        <p><strong>Последнее обновление:</strong> {% now "d.m.Y H:i" %}</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="glass-card">
+                        <h5 class="mb-3"><i class="bi bi-graph-up me-2" style="color: #ff0000;"></i>График температуры</h5>
+                        <div class="text-center py-4">
+                            <i class="bi bi-bar-chart-line" style="font-size: 4rem; color: #cbd5e0;"></i>
+                            <p class="text-muted mt-3">График будет доступен позже</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4 d-flex gap-2">
+                <a href="{% url 'home' %}" class="btn btn-outline-primary" style="border-color: #0033a0; color: #0033a0;">
+                    <i class="bi bi-arrow-left"></i> Назад к схеме
+                </a>
+                <button class="btn" style="background: linear-gradient(135deg, #0033a0 0%, #ff0000 100%); color: white;" onclick="editFromDetail({{ element.id }})">
+                    <i class="bi bi-pencil-square"></i> Редактировать
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function editFromDetail(id) {
+    // Сохраняем в localStorage и переходим на главную
+    localStorage.setItem('editElement', id);
+    window.location.href = '/';
+}
+
+// Если есть что редактировать после перехода
+window.addEventListener('load', function() {
+    const editId = localStorage.getItem('editElement');
+    if (editId) {
+        localStorage.removeItem('editElement');
+        // Ждем загрузки элементов
+        setTimeout(() => {
+            const el = elements?.find(e => e.id == editId);
+            if (el) editElement(editId);
+        }, 500);
+    }
+});
+</script>
+{% endblock %}
