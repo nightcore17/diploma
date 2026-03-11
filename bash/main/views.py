@@ -85,3 +85,5 @@ def get_data(request):
 def element_detail(request, element_id):
     element = RefrigerationElement.objects.get(id=element_id)
     return render(request, 'main/element_detail.html', {'element': element})
+def full_schema(request):
+    return render(request, 'main/full_schema.html')

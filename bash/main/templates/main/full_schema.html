@@ -1,0 +1,296 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12">
+            <a href="{% url 'home' %}" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left"></i> На главную
+            </a>
+        </div>
+    </div>
+    
+    <div class="schema-container">
+        <svg width="1400" height="900" viewBox="0 0 1400 900">
+            <!-- Определения стрелок и эффектов -->
+            <defs>
+                <marker id="arrow" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+                    <polygon points="0 0, 12 4, 0 8" fill="#0033a0" />
+                </marker>
+                <filter id="glow">
+                    <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                    <feMerge>
+                        <feMergeNode in="coloredBlur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                </filter>
+            </defs>
+            
+            <!-- Заголовок -->
+            <text x="700" y="35" text-anchor="middle" font-size="24" font-weight="800" fill="#0033a0">Принципиальная схема аммиачного холодильного отделения</text>
+            <text x="700" y="60" text-anchor="middle" font-size="14" fill="#ff0000" font-weight="600">Установка 40/2</text>
+            
+            <!-- ============= ВЕРХНИЙ РЯД - КОМПРЕССОРЫ И АДК ============= -->
+            <g>
+                <rect x="50" y="100" width="100" height="80" rx="12" fill="#ffebee" stroke="#d32f2f" stroke-width="2.5"/>
+                <text x="100" y="130" text-anchor="middle" font-weight="bold">АДК №1</text>
+                <text x="100" y="150" text-anchor="middle" font-size="9">компрессор</text>
+                
+                <rect x="170" y="100" width="100" height="80" rx="12" fill="#ffebee" stroke="#d32f2f" stroke-width="2.5"/>
+                <text x="220" y="130" text-anchor="middle" font-weight="bold">АДК №2</text>
+                <text x="220" y="150" text-anchor="middle" font-size="9">компрессор</text>
+                
+                <rect x="290" y="100" width="100" height="80" rx="12" fill="#ffebee" stroke="#d32f2f" stroke-width="2.5"/>
+                <text x="340" y="130" text-anchor="middle" font-weight="bold">АДК №3</text>
+                <text x="340" y="150" text-anchor="middle" font-size="9">компрессор</text>
+                
+                <rect x="410" y="100" width="100" height="80" rx="12" fill="#ffebee" stroke="#d32f2f" stroke-width="2.5"/>
+                <text x="460" y="130" text-anchor="middle" font-weight="bold">АДК №4</text>
+                <text x="460" y="150" text-anchor="middle" font-size="9">компрессор</text>
+            </g>
+            
+            <!-- ============= МАСЛООТДЕЛИТЕЛИ МО ============= -->
+            <g>
+                <rect x="550" y="100" width="70" height="50" rx="8" fill="#fff3e0" stroke="#f57c00" stroke-width="2.5"/>
+                <text x="585" y="125" text-anchor="middle">МО-1</text>
+                
+                <rect x="640" y="100" width="70" height="50" rx="8" fill="#fff3e0" stroke="#f57c00" stroke-width="2.5"/>
+                <text x="675" y="125" text-anchor="middle">МО-2</text>
+                
+                <rect x="730" y="100" width="70" height="50" rx="8" fill="#fff3e0" stroke="#f57c00" stroke-width="2.5"/>
+                <text x="765" y="125" text-anchor="middle">МО-3</text>
+            </g>
+            
+            <!-- ============= КРИСТАЛЛИЗАТОРЫ КР-6 - КР-10А ============= -->
+            <g>
+                <circle cx="850" cy="120" r="30" fill="#e3f2fd" stroke="#0033a0" stroke-width="2.5"/>
+                <text x="850" y="125" text-anchor="middle" font-weight="bold">КР-6</text>
+                
+                <circle cx="930" cy="120" r="30" fill="#e3f2fd" stroke="#0033a0" stroke-width="2.5"/>
+                <text x="930" y="125" text-anchor="middle" font-weight="bold">КР-7</text>
+                
+                <circle cx="1010" cy="120" r="30" fill="#e3f2fd" stroke="#0033a0" stroke-width="2.5"/>
+                <text x="1010" y="125" text-anchor="middle" font-weight="bold">КР-8</text>
+                
+                <circle cx="1090" cy="120" r="30" fill="#e3f2fd" stroke="#0033a0" stroke-width="2.5"/>
+                <text x="1090" y="125" text-anchor="middle" font-weight="bold">КР-9</text>
+                
+                <circle cx="1170" cy="120" r="30" fill="#e3f2fd" stroke="#0033a0" stroke-width="2.5"/>
+                <text x="1170" y="120" text-anchor="middle" font-weight="bold">КР-10</text>
+                <text x="1170" y="140" text-anchor="middle" font-size="9">КР-10А</text>
+            </g>
+            
+            <!-- ============= ТЕПЛООБМЕННИКИ Т-27 ============= -->
+            <g>
+                <rect x="50" y="250" width="90" height="60" rx="10" fill="#e8f5e8" stroke="#2e7d32" stroke-width="2.5"/>
+                <text x="95" y="280" text-anchor="middle" font-weight="bold">Т-27</text>
+                <text x="95" y="295" text-anchor="middle" font-size="9">теплообм.</text>
+                
+                <rect x="160" y="250" width="90" height="60" rx="10" fill="#e8f5e8" stroke="#2e7d32" stroke-width="2.5"/>
+                <text x="205" y="280" text-anchor="middle" font-weight="bold">Т-27А</text>
+                
+                <rect x="270" y="250" width="90" height="60" rx="10" fill="#e8f5e8" stroke="#2e7d32" stroke-width="2.5"/>
+                <text x="315" y="280" text-anchor="middle" font-weight="bold">Т-27Б</text>
+                
+                <rect x="380" y="250" width="90" height="60" rx="10" fill="#e8f5e8" stroke="#2e7d32" stroke-width="2.5"/>
+                <text x="425" y="280" text-anchor="middle" font-weight="bold">Т-27В</text>
+            </g>
+            
+            <!-- ============= РЕСИВЕРЫ ДРЕНАЖНЫЕ РД ============= -->
+            <g>
+                <ellipse cx="550" cy="280" rx="40" ry="25" fill="#fff3e0" stroke="#f57c00" stroke-width="2.5"/>
+                <text x="550" y="280" text-anchor="middle" font-weight="bold">РД-1</text>
+                <text x="550" y="295" text-anchor="middle" font-size="9">дренаж.</text>
+                
+                <ellipse cx="670" cy="280" rx="40" ry="25" fill="#fff3e0" stroke="#f57c00" stroke-width="2.5"/>
+                <text x="670" y="280" text-anchor="middle" font-weight="bold">РД-2</text>
+            </g>
+            
+            <!-- ============= АВО ============= -->
+            <g>
+                <rect x="800" y="250" width="80" height="50" rx="8" fill="#e3f2fd" stroke="#0033a0" stroke-width="2.5"/>
+                <text x="840" y="275" text-anchor="middle" font-weight="bold">АВО-5</text>
+                <text x="840" y="290" text-anchor="middle" font-size="9">АВО-5А</text>
+            </g>
+            
+            <!-- ============= ГАСИТЕЛЬ ПУЛЬСАЦИЙ ГП ============= -->
+            <g>
+                <rect x="950" y="250" width="70" height="50" rx="8" fill="#e3f2fd" stroke="#0033a0" stroke-width="2.5"/>
+                <text x="985" y="275" text-anchor="middle" font-weight="bold">ГП-1</text>
+                <text x="985" y="290" text-anchor="middle" font-size="9">гаситель</text>
+            </g>
+            
+            <!-- ============= ПРОМЕЖУТОЧНЫЕ СОСУДЫ ПС ============= -->
+            <g>
+                <rect x="50" y="400" width="70" height="50" rx="8" fill="#fff3e0" stroke="#f57c00" stroke-width="2.5"/>
+                <text x="85" y="425" text-anchor="middle">ПС-1</text>
+                
+                <rect x="140" y="400" width="70" height="50" rx="8" fill="#fff3e0" stroke="#f57c00" stroke-width="2.5"/>
+                <text x="175" y="425" text-anchor="middle">ПС-2</text>
+                
+                <rect x="230" y="400" width="70" height="50" rx="8" fill="#fff3e0" stroke="#f57c00" stroke-width="2.5"/>
+                <text x="265" y="425" text-anchor="middle">ПС-3</text>
+                
+                <rect x="320" y="400" width="70" height="50" rx="8" fill="#fff3e0" stroke="#f57c00" stroke-width="2.5"/>
+                <text x="355" y="425" text-anchor="middle">ПС-4</text>
+                
+                <rect x="410" y="400" width="70" height="50" rx="8" fill="#fff3e0" stroke="#f57c00" stroke-width="2.5"/>
+                <text x="445" y="425" text-anchor="middle">ПС-5</text>
+                
+                <rect x="500" y="400" width="70" height="50" rx="8" fill="#fff3e0" stroke="#f57c00" stroke-width="2.5"/>
+                <text x="535" y="425" text-anchor="middle">ПС-6</text>
+                
+                <rect x="590" y="400" width="70" height="50" rx="8" fill="#fff3e0" stroke="#f57c00" stroke-width="2.5"/>
+                <text x="625" y="425" text-anchor="middle">ПС-7</text>
+                
+                <rect x="680" y="400" width="70" height="50" rx="8" fill="#fff3e0" stroke="#f57c00" stroke-width="2.5"/>
+                <text x="715" y="425" text-anchor="middle">ПС-8</text>
+                
+                <rect x="770" y="400" width="70" height="50" rx="8" fill="#fff3e0" stroke="#f57c00" stroke-width="2.5"/>
+                <text x="805" y="425" text-anchor="middle">ПС-9</text>
+                
+                <rect x="860" y="400" width="80" height="50" rx="8" fill="#fff3e0" stroke="#f57c00" stroke-width="2.5"/>
+                <text x="900" y="425" text-anchor="middle">ПС-10,10А</text>
+            </g>
+            
+            <!-- ============= РЕСИВЕРЫ ЛИНЕЙНЫЕ РЛ ============= -->
+            <g>
+                <ellipse cx="1000" cy="400" rx="35" ry="20" fill="#e8f5e8" stroke="#2e7d32" stroke-width="2.5"/>
+                <text x="1000" y="400" text-anchor="middle">РЛ-1</text>
+                
+                <ellipse cx="1100" cy="400" rx="35" ry="20" fill="#e8f5e8" stroke="#2e7d32" stroke-width="2.5"/>
+                <text x="1100" y="400" text-anchor="middle">РЛ-2</text>
+                
+                <ellipse cx="1200" cy="400" rx="35" ry="20" fill="#e8f5e8" stroke="#2e7d32" stroke-width="2.5"/>
+                <text x="1200" y="400" text-anchor="middle">РЛ-3</text>
+                
+                <ellipse cx="1300" cy="400" rx="35" ry="20" fill="#e8f5e8" stroke="#2e7d32" stroke-width="2.5"/>
+                <text x="1300" y="400" text-anchor="middle">РЛ-4</text>
+            </g>
+            
+            <!-- ============= КОНДЕНСАТОРЫ КТВ ============= -->
+            <g>
+                <rect x="50" y="550" width="70" height="50" rx="8" fill="#ffebee" stroke="#d32f2f" stroke-width="2.5"/>
+                <text x="85" y="575" text-anchor="middle">КТВ-1</text>
+                
+                <rect x="140" y="550" width="70" height="50" rx="8" fill="#ffebee" stroke="#d32f2f" stroke-width="2.5"/>
+                <text x="175" y="575" text-anchor="middle">КТВ-2</text>
+                
+                <rect x="230" y="550" width="70" height="50" rx="8" fill="#ffebee" stroke="#d32f2f" stroke-width="2.5"/>
+                <text x="265" y="575" text-anchor="middle">КТВ-3</text>
+                
+                <rect x="320" y="550" width="70" height="50" rx="8" fill="#ffebee" stroke="#d32f2f" stroke-width="2.5"/>
+                <text x="355" y="575" text-anchor="middle">КТВ-4</text>
+                
+                <rect x="410" y="550" width="70" height="50" rx="8" fill="#ffebee" stroke="#d32f2f" stroke-width="2.5"/>
+                <text x="445" y="575" text-anchor="middle">КТВ-5</text>
+                
+                <rect x="500" y="550" width="70" height="50" rx="8" fill="#ffebee" stroke="#d32f2f" stroke-width="2.5"/>
+                <text x="535" y="575" text-anchor="middle">КТВ-6</text>
+            </g>
+            
+            <!-- ============= ОТДЕЛИТЕЛИ ЖИДКОСТИ ОЖ ============= -->
+            <g>
+                <rect x="620" y="550" width="70" height="50" rx="8" fill="#fff3e0" stroke="#f57c00" stroke-width="2.5"/>
+                <text x="655" y="575" text-anchor="middle">ОЖ-1</text>
+                
+                <rect x="710" y="550" width="70" height="50" rx="8" fill="#fff3e0" stroke="#f57c00" stroke-width="2.5"/>
+                <text x="745" y="575" text-anchor="middle">ОЖ-2</text>
+            </g>
+            
+            <!-- ============= ЛИНИИ СОЕДИНЕНИЙ ============= -->
+            <!-- Основные магистрали -->
+            <line x1="100" y1="180" x2="100" y2="230" stroke="#0033a0" stroke-width="3"/>
+            <line x1="220" y1="180" x2="220" y2="230" stroke="#0033a0" stroke-width="3"/>
+            <line x1="340" y1="180" x2="340" y2="230" stroke="#0033a0" stroke-width="3"/>
+            <line x1="460" y1="180" x2="460" y2="230" stroke="#0033a0" stroke-width="3"/>
+            
+            <!-- К маслуотделителям -->
+            <line x1="585" y1="150" x2="585" y2="230" stroke="#0033a0" stroke-width="3"/>
+            <line x1="675" y1="150" x2="675" y2="230" stroke="#0033a0" stroke-width="3"/>
+            <line x1="765" y1="150" x2="765" y2="230" stroke="#0033a0" stroke-width="3"/>
+            
+            <!-- К кристаллизаторам -->
+            <line x1="850" y1="150" x2="850" y2="210" stroke="#f44336" stroke-width="4"/>
+            <line x1="930" y1="150" x2="930" y2="210" stroke="#f44336" stroke-width="4"/>
+            <line x1="1010" y1="150" x2="1010" y2="210" stroke="#f44336" stroke-width="4"/>
+            <line x1="1090" y1="150" x2="1090" y2="210" stroke="#f44336" stroke-width="4"/>
+            <line x1="1170" y1="150" x2="1170" y2="210" stroke="#f44336" stroke-width="4"/>
+            
+            <!-- К теплообменникам -->
+            <line x1="95" y1="310" x2="95" y2="380" stroke="#2196f3" stroke-width="3" stroke-dasharray="8,5"/>
+            <line x1="205" y1="310" x2="205" y2="380" stroke="#2196f3" stroke-width="3" stroke-dasharray="8,5"/>
+            <line x1="315" y1="310" x2="315" y2="380" stroke="#2196f3" stroke-width="3" stroke-dasharray="8,5"/>
+            <line x1="425" y1="310" x2="425" y2="380" stroke="#2196f3" stroke-width="3" stroke-dasharray="8,5"/>
+            
+            <!-- К ресиверам -->
+            <line x1="550" y1="305" x2="550" y2="380" stroke="#9e9e9e" stroke-width="2" stroke-dasharray="6,4"/>
+            <line x1="670" y1="305" x2="670" y2="380" stroke="#9e9e9e" stroke-width="2" stroke-dasharray="6,4"/>
+            
+            <!-- К промежуточным сосудам -->
+            <line x1="85" y1="450" x2="85" y2="530" stroke="#0033a0" stroke-width="3"/>
+            <line x1="175" y1="450" x2="175" y2="530" stroke="#0033a0" stroke-width="3"/>
+            <line x1="265" y1="450" x2="265" y2="530" stroke="#0033a0" stroke-width="3"/>
+            <line x1="355" y1="450" x2="355" y2="530" stroke="#0033a0" stroke-width="3"/>
+            <line x1="445" y1="450" x2="445" y2="530" stroke="#0033a0" stroke-width="3"/>
+            <line x1="535" y1="450" x2="535" y2="530" stroke="#0033a0" stroke-width="3"/>
+            <line x1="625" y1="450" x2="625" y2="530" stroke="#0033a0" stroke-width="3"/>
+            <line x1="715" y1="450" x2="715" y2="530" stroke="#0033a0" stroke-width="3"/>
+            <line x1="805" y1="450" x2="805" y2="530" stroke="#0033a0" stroke-width="3"/>
+            <line x1="900" y1="450" x2="900" y2="530" stroke="#0033a0" stroke-width="3"/>
+            
+            <!-- К линейным ресиверам -->
+            <line x1="1000" y1="420" x2="1000" y2="530" stroke="#0033a0" stroke-width="3"/>
+            <line x1="1100" y1="420" x2="1100" y2="530" stroke="#0033a0" stroke-width="3"/>
+            <line x1="1200" y1="420" x2="1200" y2="530" stroke="#0033a0" stroke-width="3"/>
+            <line x1="1300" y1="420" x2="1300" y2="530" stroke="#0033a0" stroke-width="3"/>
+            
+            <!-- К КТВ -->
+            <line x1="85" y1="600" x2="85" y2="680" stroke="#f44336" stroke-width="4"/>
+            <line x1="175" y1="600" x2="175" y2="680" stroke="#f44336" stroke-width="4"/>
+            <line x1="265" y1="600" x2="265" y2="680" stroke="#f44336" stroke-width="4"/>
+            <line x1="355" y1="600" x2="355" y2="680" stroke="#f44336" stroke-width="4"/>
+            <line x1="445" y1="600" x2="445" y2="680" stroke="#f44336" stroke-width="4"/>
+            <line x1="535" y1="600" x2="535" y2="680" stroke="#f44336" stroke-width="4"/>
+            
+            <!-- К ОЖ -->
+            <line x1="655" y1="600" x2="655" y2="680" stroke="#2196f3" stroke-width="3" stroke-dasharray="8,5"/>
+            <line x1="745" y1="600" x2="745" y2="680" stroke="#2196f3" stroke-width="3" stroke-dasharray="8,5"/>
+            
+            <!-- Соединения между группами -->
+            <path d="M100 230 L100 250 L300 250 L300 380" stroke="#0033a0" stroke-width="3" fill="none"/>
+            <path d="M340 230 L340 250 L550 250 L550 280" stroke="#0033a0" stroke-width="3" fill="none"/>
+            <path d="M460 230 L460 250 L800 250 L800 300" stroke="#0033a0" stroke-width="3" fill="none"/>
+            
+            <!-- Горизонтальные коллекторы -->
+            <line x1="50" y1="480" x2="950" y2="480" stroke="#0033a0" stroke-width="3" stroke-dasharray="10,10"/>
+            <line x1="50" y1="620" x2="800" y2="620" stroke="#f44336" stroke-width="4" stroke-dasharray="8,8"/>
+            
+            <!-- Подписи соединений -->
+            <text x="200" y="200" fill="#0033a0" font-weight="bold">-1</text>
+            <text x="400" y="200" fill="#0033a0" font-weight="bold">-2</text>
+            <text x="600" y="200" fill="#0033a0" font-weight="bold">-3</text>
+            <text x="900" y="180" fill="#f44336" font-weight="bold">-550</text>
+        </svg>
+        
+        <!-- Легенда -->
+        <div style="background: rgba(255,255,255,0.95); border-radius: 15px; padding: 20px; margin-top: 20px; border-left: 5px solid #0033a0;">
+            <h4 style="color:#0033a0; margin-top:0;">Условные обозначения:</h4>
+            <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+                <div><span style="display:inline-block; width:20px; height:20px; background:#ffebee; border:2px solid #d32f2f; border-radius:5px;"></span> АДК - Компрессоры</div>
+                <div><span style="display:inline-block; width:20px; height:20px; background:#e3f2fd; border:2px solid #0033a0; border-radius:50%;"></span> КР - Кристаллизаторы</div>
+                <div><span style="display:inline-block; width:20px; height:20px; background:#e8f5e8; border:2px solid #2e7d32; border-radius:5px;"></span> Т - Теплообменники</div>
+                <div><span style="display:inline-block; width:20px; height:20px; background:#fff3e0; border:2px solid #f57c00; border-radius:20px;"></span> ПС - Промсосуды</div>
+                <div><span style="display:inline-block; width:20px; height:20px; background:#ffebee; border:2px solid #d32f2f; border-radius:5px;"></span> КТВ - Конденсаторы</div>
+            </div>
+            <div style="margin-top:15px;">
+                <span style="margin-right:20px;"><span style="color:#0033a0;">———</span> Основные трубопроводы</span>
+                <span style="margin-right:20px;"><span style="color:#f44336;">———</span> Горячий контур (-550)</span>
+                <span style="margin-right:20px;"><span style="color:#2196f3;">- - - -</span> Холодный контур</span>
+                <span><span style="color:#9e9e9e;">- · - · -</span> Дренажные линии</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

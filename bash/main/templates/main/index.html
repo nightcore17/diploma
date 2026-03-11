@@ -57,13 +57,45 @@
                     <i class="bi bi-diagram-3-fill me-2" style="color: #0033a0;"></i>
                     Схема холодильного отделения
                 </h4>
-                <div>
-                    <span class="badge bg-success me-2">● Норма</span>
-                    <span class="badge bg-warning me-2">● Внимание</span>
-                    <span class="badge bg-danger">● Авария</span>
-                </div>
+                <a href="{% url 'full_schema' %}" class="btn btn-sm" style="background: linear-gradient(135deg, #0033a0 0%, #ff0000 100%); color: white;">
+                    <i class="bi bi-arrow-up-right-circle"></i> Полная схема
+                </a>
             </div>
-            <svg id="schema" width="100%" height="500" viewBox="0 0 1000 500"></svg>
+            
+            <!-- Упрощенная схема на главной -->
+            <svg width="100%" height="400" viewBox="0 0 1000 400">
+                <!-- Компрессоры -->
+                <rect x="50" y="150" width="80" height="60" rx="8" fill="#ffebee" stroke="#d32f2f" stroke-width="2"/>
+                <text x="90" y="180" text-anchor="middle" font-size="12" fill="#000">АДК-1</text>
+                
+                <rect x="150" y="150" width="80" height="60" rx="8" fill="#ffebee" stroke="#d32f2f" stroke-width="2"/>
+                <text x="190" y="180" text-anchor="middle" font-size="12">АДК-2</text>
+                
+                <!-- Кристаллизаторы -->
+                <circle cx="300" cy="180" r="25" fill="#e3f2fd" stroke="#0033a0" stroke-width="2"/>
+                <text x="300" y="185" text-anchor="middle" font-size="10">КР-6</text>
+                
+                <circle cx="360" cy="180" r="25" fill="#e3f2fd" stroke="#0033a0" stroke-width="2"/>
+                <text x="360" y="185" text-anchor="middle" font-size="10">КР-7</text>
+                
+                <!-- Теплообменники -->
+                <rect x="450" y="150" width="70" height="50" rx="5" fill="#e8f5e8" stroke="#2e7d32" stroke-width="2"/>
+                <text x="485" y="175" text-anchor="middle" font-size="10">Т-27</text>
+                
+                <!-- Ресиверы -->
+                <ellipse cx="600" cy="175" rx="35" ry="20" fill="#fff3e0" stroke="#f57c00" stroke-width="2"/>
+                <text x="600" y="180" text-anchor="middle" font-size="10">РД-1</text>
+                
+                <!-- Линии соединений (упрощенно) -->
+                <line x1="130" y1="180" x2="275" y2="180" stroke="#0033a0" stroke-width="2" stroke-dasharray="5,3"/>
+                <line x1="325" y1="180" x2="425" y2="175" stroke="#2196f3" stroke-width="2"/>
+                <line x1="485" y1="175" x2="565" y2="175" stroke="#f44336" stroke-width="2"/>
+                
+                <!-- Текст ссылки -->
+                <text x="700" y="300" text-anchor="middle" fill="#0033a0" font-size="14" font-weight="bold">
+                    Нажмите "Полная схема" для детального просмотра
+                </text>
+            </svg>
         </div>
     </div>
     
@@ -124,115 +156,9 @@
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block scripts %}
 <script>
 const elements = {{ elements_json|safe }};
-
-function drawSchema() {
-    const svg = document.getElementById('schema');
-    svg.innerHTML = '';
-    
-    // Рисуем соединения (линии)
-    for (let i = 0; i < elements.length - 1; i++) {
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("x1", elements[i].pos_x + 20);
-        line.setAttribute("y1", elements[i].pos_y);
-        line.setAttribute("x2", elements[i + 1].pos_x - 20);
-        line.setAttribute("y2", elements[i + 1].pos_y);
-        line.setAttribute("class", "connection-line");
-        svg.appendChild(line);
-    }
-    
-    // Рисуем элементы
-    elements.forEach(el => {
-        const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        group.setAttribute("transform", `translate(${el.pos_x}, ${el.pos_y})`);
-        group.setAttribute("data-id", el.id);
-        group.setAttribute("class", "schema-element");
-        group.setAttribute("onclick", `showInfo(${el.id})`);
-        group.setAttribute("ondblclick", `goToElementPage(${el.id})`);
-        
-        // Внешний круг для эффекта
-        const outerCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        outerCircle.setAttribute("r", "24");
-        outerCircle.setAttribute("fill", "rgba(0, 51, 160, 0.1)");
-        outerCircle.setAttribute("stroke", "none");
-        
-        // Основной круг
-        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        circle.setAttribute("r", "20");
-        
-        // Цвет в зависимости от статуса
-        const colors = {
-            'normal': '#4caf50',
-            'warning': '#ff9800',
-            'alarm': '#f44336'
-        };
-        circle.setAttribute("fill", colors[el.status] || '#4caf50');
-        circle.setAttribute("stroke", "white");
-        circle.setAttribute("stroke-width", "3");
-        
-        // Текст температуры
-        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        text.setAttribute("text-anchor", "middle");
-        text.setAttribute("dy", "0.3em");
-        text.setAttribute("fill", "white");
-        text.setAttribute("font-size", "12");
-        text.setAttribute("font-weight", "bold");
-        text.textContent = el.temperature + '°';
-        
-        group.appendChild(outerCircle);
-        group.appendChild(circle);
-        group.appendChild(text);
-        svg.appendChild(group);
-        
-        // Подпись с названием
-        const label = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        label.setAttribute("transform", `translate(${el.pos_x}, ${el.pos_y + 40})`);
-        
-        const labelBg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        labelBg.setAttribute("x", "-40");
-        labelBg.setAttribute("y", "-12");
-        labelBg.setAttribute("width", "80");
-        labelBg.setAttribute("height", "20");
-        labelBg.setAttribute("rx", "10");
-        labelBg.setAttribute("fill", "rgba(255, 255, 255, 0.9)");
-        labelBg.setAttribute("filter", "url(#shadow)");
-        
-        const labelText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        labelText.setAttribute("text-anchor", "middle");
-        labelText.setAttribute("dy", "0.3em");
-        labelText.setAttribute("fill", "#333");
-        labelText.setAttribute("font-size", "10");
-        labelText.setAttribute("font-weight", "600");
-        labelText.textContent = el.name;
-        
-        label.appendChild(labelBg);
-        label.appendChild(labelText);
-        svg.appendChild(label);
-    });
-    
-    // Добавляем фильтр тени
-    const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
-    const filter = document.createElementNS("http://www.w3.org/2000/svg", "filter");
-    filter.setAttribute("id", "shadow");
-    filter.setAttribute("x", "-50%");
-    filter.setAttribute("y", "-50%");
-    filter.setAttribute("width", "200%");
-    filter.setAttribute("height", "200%");
-    
-    const feDropShadow = document.createElementNS("http://www.w3.org/2000/svg", "feDropShadow");
-    feDropShadow.setAttribute("dx", "0");
-    feDropShadow.setAttribute("dy", "2");
-    feDropShadow.setAttribute("stdDeviation", "2");
-    feDropShadow.setAttribute("flood-color", "rgba(0,0,0,0.1)");
-    
-    filter.appendChild(feDropShadow);
-    defs.appendChild(filter);
-    svg.appendChild(defs);
-}
 
 function showInfo(id) {
     const el = elements.find(e => e.id === id);
@@ -249,15 +175,15 @@ function showInfo(id) {
         
         <div class="row g-3 mb-4">
             <div class="col-6">
-                <div class="p-3 temperature-gradient rounded-3 text-center">
-                    <i class="bi bi-thermometer-half" style="font-size: 1.5rem;"></i>
+                <div class="p-3" style="background: linear-gradient(135deg, #0033a0 0%, #0066cc 100%); color: white; border-radius: 10px;">
+                    <i class="bi bi-thermometer-half"></i>
                     <h5 class="mt-2 mb-0">${el.temperature}°C</h5>
                     <small>Температура</small>
                 </div>
             </div>
             <div class="col-6">
-                <div class="p-3 pressure-gradient rounded-3 text-center">
-                    <i class="bi bi-speedometer2" style="font-size: 1.5rem;"></i>
+                <div class="p-3" style="background: linear-gradient(135deg, #ff0000 0%, #ff4444 100%); color: white; border-radius: 10px;">
+                    <i class="bi bi-speedometer2"></i>
                     <h5 class="mt-2 mb-0">${el.pressure} бар</h5>
                     <small>Давление</small>
                 </div>
@@ -273,10 +199,6 @@ function showInfo(id) {
             </a>
         </div>
     `;
-}
-
-function goToElementPage(id) {
-    window.location.href = `/element/${id}`;
 }
 
 function editElement(id) {
@@ -314,25 +236,5 @@ function saveElement() {
         }
     });
 }
-
-// Автообновление каждые 10 секунд
-setInterval(() => {
-    fetch('/api/get-data/')
-        .then(response => response.json())
-        .then(data => {
-            data.elements.forEach(newEl => {
-                const oldEl = elements.find(e => e.id === newEl.id);
-                if (oldEl) {
-                    oldEl.temperature = newEl.temperature;
-                    oldEl.pressure = newEl.pressure;
-                    oldEl.status = newEl.status;
-                }
-            });
-            drawSchema();
-        });
-}, 10000);
-
-// Рисуем схему
-drawSchema();
 </script>
 {% endblock %}
