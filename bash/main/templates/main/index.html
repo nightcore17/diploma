@@ -2,6 +2,34 @@
 {% load static %}
 
 {% block content %}
+<!-- Виджет погоды на главной -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="glass-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0"><i class="bi bi-cloud-sun"></i> Погода на неделю</h4>
+                </div>
+                <a href="{% url 'weather' %}" class="btn btn-light">
+                    <i class="bi bi-calendar-week"></i> Подробнее
+                </a>
+            </div>
+            <div class="row mt-3">
+                {% for forecast in forecasts|slice:":4" %}
+                <div class="col-md-3 col-6 text-center">
+                    <div style="background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); border-radius: 15px; padding: 10px; margin: 5px; border: 1px solid rgba(255,255,255,0.3);">
+                        <div style="font-size: 2rem;">{{ forecast.icon }}</div>
+                        <div style="font-size: 0.9rem;">{{ forecast.date|date:"d.m" }}</div>
+                        <div><strong>{{ forecast.temperature_day }}°C</strong></div>
+                        <div style="font-size: 0.8rem;">ночью {{ forecast.temperature_night }}°</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Статистика -->
 <div class="row mb-4">
     <div class="col-md-4">
@@ -48,63 +76,103 @@
     </div>
 </div>
 
-<!-- Схема и информация -->
-<div class="row">
-    <div class="col-lg-9">
-        <div class="schema-container">
+<!-- СХЕМА (ТЕПЕРЬ ВИДНО!) -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="glass-card p-3" style="background: #f0f7ff;">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h4 class="mb-0">
                     <i class="bi bi-diagram-3-fill me-2" style="color: #0033a0;"></i>
                     Схема холодильного отделения
                 </h4>
-                <a href="{% url 'full_schema' %}" class="btn btn-sm" style="background: linear-gradient(135deg, #0033a0 0%, #ff0000 100%); color: white;">
+                <a href="{% url 'full_schema' %}" class="btn btn-sm btn-outline-primary">
                     <i class="bi bi-arrow-up-right-circle"></i> Полная схема
                 </a>
             </div>
-            
-            <!-- Упрощенная схема на главной -->
-            <svg width="100%" height="400" viewBox="0 0 1000 400">
-                <!-- Компрессоры -->
-                <rect x="50" y="150" width="80" height="60" rx="8" fill="#ffebee" stroke="#d32f2f" stroke-width="2"/>
-                <text x="90" y="180" text-anchor="middle" font-size="12" fill="#000">АДК-1</text>
-                
-                <rect x="150" y="150" width="80" height="60" rx="8" fill="#ffebee" stroke="#d32f2f" stroke-width="2"/>
-                <text x="190" y="180" text-anchor="middle" font-size="12">АДК-2</text>
-                
-                <!-- Кристаллизаторы -->
-                <circle cx="300" cy="180" r="25" fill="#e3f2fd" stroke="#0033a0" stroke-width="2"/>
-                <text x="300" y="185" text-anchor="middle" font-size="10">КР-6</text>
-                
-                <circle cx="360" cy="180" r="25" fill="#e3f2fd" stroke="#0033a0" stroke-width="2"/>
-                <text x="360" y="185" text-anchor="middle" font-size="10">КР-7</text>
-                
-                <!-- Теплообменники -->
-                <rect x="450" y="150" width="70" height="50" rx="5" fill="#e8f5e8" stroke="#2e7d32" stroke-width="2"/>
-                <text x="485" y="175" text-anchor="middle" font-size="10">Т-27</text>
-                
-                <!-- Ресиверы -->
-                <ellipse cx="600" cy="175" rx="35" ry="20" fill="#fff3e0" stroke="#f57c00" stroke-width="2"/>
-                <text x="600" y="180" text-anchor="middle" font-size="10">РД-1</text>
-                
-                <!-- Линии соединений (упрощенно) -->
-                <line x1="130" y1="180" x2="275" y2="180" stroke="#0033a0" stroke-width="2" stroke-dasharray="5,3"/>
-                <line x1="325" y1="180" x2="425" y2="175" stroke="#2196f3" stroke-width="2"/>
-                <line x1="485" y1="175" x2="565" y2="175" stroke="#f44336" stroke-width="2"/>
-                
-                <!-- Текст ссылки -->
-                <text x="700" y="300" text-anchor="middle" fill="#0033a0" font-size="14" font-weight="bold">
-                    Нажмите "Полная схема" для детального просмотра
-                </text>
-            </svg>
-        </div>
-    </div>
-    
-    <div class="col-lg-3">
-        <div class="info-panel" id="info-panel">
-            <div class="text-center py-5">
-                <i class="bi bi-hand-index-thumb" style="font-size: 3rem; color: #cbd5e0;"></i>
-                <p class="text-muted mt-3">Нажмите на элемент схемы<br>для просмотра деталей</p>
-            </div>
+
+            <!-- КЛИКАБЕЛЬНАЯ СХЕМА (БОЛЬШАЯ И ЧЁТКАЯ) -->
+            <a href="{% url 'full_schema' %}" style="display: block; text-decoration: none;">
+                <div style="position: relative; width: 100%; background: #d9e9ff; border-radius: 20px; padding: 20px; border: 2px solid #4a90e2;">
+                    
+                    <!-- ЗАГОЛОВОК СХЕМЫ -->
+                    <div style="text-align: center; color: #1a4a7a; font-weight: 600; font-size: 20px; margin-bottom: 15px;">
+                        СХЕМА ХОЛОДИЛЬНОГО ОТДЕЛЕНИЯ
+                    </div>
+
+                    <!-- КОНТЕЙНЕР С ЭЛЕМЕНТАМИ -->
+                    <div style="position: relative; height: 350px; background: rgba(255,255,255,0.5); border-radius: 15px;">
+
+                        <!-- КР (колонка слева) -->
+                        <div style="position: absolute; left: 5%; top: 10%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px solid #d32f2f;">КР-6</div>
+                        <div style="position: absolute; left: 5%; top: 22%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px solid #d32f2f;">КР-7</div>
+                        <div style="position: absolute; left: 5%; top: 34%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px solid #d32f2f;">КР-8</div>
+                        <div style="position: absolute; left: 5%; top: 46%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px solid #d32f2f;">КР-9</div>
+                        <div style="position: absolute; left: 5%; top: 58%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px solid #d32f2f;">КР-10</div>
+                        <div style="position: absolute; left: 5%; top: 70%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px solid #d32f2f;">КР-10а</div>
+
+                        <!-- РД, ОЖ -->
+                        <div style="position: absolute; left: 18%; top: 20%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">РД-1</div>
+                        <div style="position: absolute; left: 28%; top: 20%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">РД-2</div>
+                        <div style="position: absolute; left: 28%; top: 5%; width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center;">ОЖ-1</div>
+                        <div style="position: absolute; left: 28%; top: -2%; width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center;">ОЖ-2</div>
+
+                        <!-- Т -->
+                        <div style="position: absolute; left: 18%; top: 40%; width: 100px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">Т-27</div>
+                        <div style="position: absolute; left: 18%; top: 48%; width: 100px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">Т-27а</div>
+                        <div style="position: absolute; left: 18%; top: 56%; width: 100px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">Т-27б</div>
+                        <div style="position: absolute; left: 18%; top: 64%; width: 100px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">Т-27в</div>
+
+                        <!-- АДК (вверху справа) -->
+                        <div style="position: absolute; left: 45%; top: 5%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px solid #d32f2f;">АДК-3</div>
+                        <div style="position: absolute; left: 55%; top: 5%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px solid #d32f2f;">АДК-2</div>
+                        <div style="position: absolute; left: 65%; top: 5%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px solid #d32f2f;">АДК-1</div>
+
+                        <!-- ПС (вертикальные) -->
+                        <div style="position: absolute; left: 45%; top: 18%; width: 50px; height: 70px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center;">ПС-3</div>
+                        <div style="position: absolute; left: 55%; top: 18%; width: 50px; height: 70px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center;">ПС-2</div>
+                        <div style="position: absolute; left: 65%; top: 18%; width: 50px; height: 70px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center;">ПС-1</div>
+                        <div style="position: absolute; left: 88%; top: 18%; width: 50px; height: 70px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center;">ПС-4</div>
+
+                        <!-- МО -->
+                        <div style="position: absolute; left: 45%; top: 45%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">МО-3</div>
+                        <div style="position: absolute; left: 55%; top: 45%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">МО-2</div>
+                        <div style="position: absolute; left: 65%; top: 45%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">МО-1</div>
+
+                        <!-- АВО, ГЛ -->
+                        <div style="position: absolute; left: 40%; top: 60%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">АВО-5.5а</div>
+                        <div style="position: absolute; left: 50%; top: 65%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">ГЛ-1</div>
+
+                        <!-- КТВ (внизу) -->
+                        <div style="position: absolute; left: 45%; top: 80%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">КТВ-1</div>
+                        <div style="position: absolute; left: 55%; top: 80%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">КТВ-2</div>
+                        <div style="position: absolute; left: 65%; top: 80%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">КТВ-3</div>
+                        <div style="position: absolute; left: 75%; top: 80%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">КТВ-4</div>
+                        <div style="position: absolute; left: 85%; top: 80%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">КТВ-5</div>
+
+                        <!-- ДАО-550 (большой круг) -->
+                        <div style="position: absolute; left: 75%; top: 30%; width: 120px; height: 120px; background: radial-gradient(circle, #ffffff, #f0faff); border-radius: 50%; border: 3px solid white; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                            <span style="font-size: 30px;">❄️</span>
+                            <b>ДАО-550</b>
+                        </div>
+
+                        <!-- РЛ -->
+                        <div style="position: absolute; left: 88%; top: 45%; width: 100px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">РЛ-1</div>
+                        <div style="position: absolute; left: 88%; top: 53%; width: 100px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">РЛ-2</div>
+                        <div style="position: absolute; left: 88%; top: 61%; width: 100px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">РЛ-3</div>
+
+                        <!-- РЛ-4 (большой) -->
+                        <div style="position: absolute; left: 80%; top: 68%; width: 200px; height: 70px; background: white; border-radius: 15px; display: flex; align-items: center; justify-content: center; border: 2px solid #4a90e2;">
+                            <b style="font-size: 18px;">РЛ-4</b>
+                        </div>
+
+                    </div>
+
+                    <!-- Подсказка -->
+                    <div style="text-align: center; margin-top: 15px; color: #2c3e50;">
+                        <i class="bi bi-hand-index"></i> Нажмите на схему, чтобы открыть полную версию
+                    </div>
+                </div>
+            </a>
         </div>
     </div>
 </div>
@@ -236,5 +304,21 @@ function saveElement() {
         }
     });
 }
+
+// Автообновление каждые 10 секунд
+setInterval(() => {
+    fetch('/api/get-data/')
+        .then(response => response.json())
+        .then(data => {
+            data.elements.forEach(newEl => {
+                const oldEl = elements.find(e => e.id === newEl.id);
+                if (oldEl) {
+                    oldEl.temperature = newEl.temperature;
+                    oldEl.pressure = newEl.pressure;
+                    oldEl.status = newEl.status;
+                }
+            });
+        });
+}, 10000);
 </script>
 {% endblock %}

@@ -1,88 +1,89 @@
 {% extends 'main/base.html' %}
-
 {% block content %}
-<div class="row">
-    <div class="col-md-8 mx-auto">
-        <div class="glass-card">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3>
-                    <i class="bi bi-cpu me-2" style="color: #0033a0;"></i>
-                    {{ element.name }}
-                </h3>
-                <span class="element-badge badge-{{ element.status }}">
-                    {{ element.get_status_display }}
-                </span>
-            </div>
-            
-            <div class="row g-4 mb-4">
-                <div class="col-md-6">
-                    <div class="stat-card" style="background: linear-gradient(135deg, #0033a0 0%, #0066cc 100%);">
-                        <div class="stat-value">{{ element.temperature }}°C</div>
-                        <div class="stat-label">Температура</div>
-                        <i class="bi bi-thermometer-snow stat-icon"></i>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="stat-card" style="background: linear-gradient(135deg, #ff0000 0%, #ff4444 100%);">
-                        <div class="stat-value">{{ element.pressure }} бар</div>
-                        <div class="stat-label">Давление</div>
-                        <i class="bi bi-speedometer2 stat-icon"></i>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row g-4">
-                <div class="col-md-6">
-                    <div class="glass-card">
-                        <h5 class="mb-3"><i class="bi bi-info-circle me-2" style="color: #0033a0;"></i>Информация</h5>
-                        <p><strong>Тип:</strong> {{ element.get_element_type_display }}</p>
-                        <p><strong>Позиция X:</strong> {{ element.pos_x }}</p>
-                        <p><strong>Позиция Y:</strong> {{ element.pos_y }}</p>
-                        <p><strong>ID:</strong> {{ element.id }}</p>
-                        <p><strong>Последнее обновление:</strong> {% now "d.m.Y H:i" %}</p>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="glass-card">
-                        <h5 class="mb-3"><i class="bi bi-graph-up me-2" style="color: #ff0000;"></i>График температуры</h5>
-                        <div class="text-center py-4">
-                            <i class="bi bi-bar-chart-line" style="font-size: 4rem; color: #cbd5e0;"></i>
-                            <p class="text-muted mt-3">График будет доступен позже</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="mt-4 d-flex gap-2">
-                <a href="{% url 'home' %}" class="btn btn-outline-primary" style="border-color: #0033a0; color: #0033a0;">
-                    <i class="bi bi-arrow-left"></i> Назад к схеме
-                </a>
-                <button class="btn" style="background: linear-gradient(135deg, #0033a0 0%, #ff0000 100%); color: white;" onclick="editFromDetail({{ element.id }})">
-                    <i class="bi bi-pencil-square"></i> Редактировать
-                </button>
+<style>
+    .detail-card {
+        max-width: 600px;
+        margin: 50px auto;
+        background: rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(15px);
+        border-radius: 48px;
+        padding: 40px;
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 30px 50px rgba(0, 40, 80, 0.3);
+        color: #003057;
+        font-family: 'Exo 2', sans-serif;
+    }
+    .value {
+        font-size: 32px;
+        font-weight: 700;
+    }
+    .label {
+        font-size: 16px;
+        opacity: 0.8;
+        margin-top: 10px;
+    }
+    .status-badge {
+        display: inline-block;
+        padding: 5px 15px;
+        border-radius: 50px;
+        font-weight: 600;
+        background: rgba(255,255,255,0.3);
+    }
+</style>
+
+<div class="detail-card">
+    <h1 class="text-center mb-4" style="font-size: 42px;">❄️ {{ element.name }}</h1>
+    
+    <div class="row mb-4">
+        <div class="col-6">
+            <div class="label">Тип</div>
+            <div class="value">{{ element.get_element_type_display }}</div>
+        </div>
+        <div class="col-6">
+            <div class="label">Статус</div>
+            <div class="value status-badge" style="color: 
+                {% if element.status == 'active' %}#2ecc71
+                {% elif element.status == 'warning' %}#f39c12
+                {% elif element.status == 'alarm' %}#e74c3c
+                {% else %}#95a5a6{% endif %};">
+                {{ element.get_status_display }}
             </div>
         </div>
     </div>
+
+    <div class="row mb-4">
+        <div class="col-6">
+            <div class="label">Температура</div>
+            <div class="value">{{ element.temperature }} °C</div>
+        </div>
+        <div class="col-6">
+            <div class="label">Давление</div>
+            <div class="value">{{ element.pressure }} бар</div>
+        </div>
+    </div>
+
+    {% if element.description %}
+    <div class="mb-4">
+        <div class="label">Описание</div>
+        <div class="p-3" style="background: rgba(255,255,255,0.2); border-radius: 20px;">
+            {{ element.description }}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row mb-4">
+        <div class="col-6">
+            <div class="label">Координаты</div>
+            <div>X: {{ element.position_x }}, Y: {{ element.position_y }}</div>
+        </div>
+        <div class="col-6">
+            <div class="label">Размеры</div>
+            <div>{{ element.width }} x {{ element.height }}</div>
+        </div>
+    </div>
+
+    <a href="{% url 'full_schema' %}" class="btn w-100 mt-3" style="background: rgba(255,255,255,0.3); border: 2px solid white; color: #003057; font-weight: 600; padding: 15px;">
+        ← Назад к схеме
+    </a>
 </div>
-
-<script>
-function editFromDetail(id) {
-    // Сохраняем в localStorage и переходим на главную
-    localStorage.setItem('editElement', id);
-    window.location.href = '/';
-}
-
-// Если есть что редактировать после перехода
-window.addEventListener('load', function() {
-    const editId = localStorage.getItem('editElement');
-    if (editId) {
-        localStorage.removeItem('editElement');
-        // Ждем загрузки элементов
-        setTimeout(() => {
-            const el = elements?.find(e => e.id == editId);
-            if (el) editElement(editId);
-        }, 500);
-    }
-});
-</script>
 {% endblock %}

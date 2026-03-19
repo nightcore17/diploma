@@ -1,0 +1,89 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <a href="{% url 'home' %}" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left"></i> На главную
+            </a>
+        </div>
+    </div>
+    
+    <div class="weather-container" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 30px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+        <h1 style="color: white; text-align: center; margin-bottom: 30px;">
+            <i class="bi bi-cloud-sun"></i> Прогноз погоды на неделю
+        </h1>
+        
+        <div class="row">
+            {% for forecast in forecasts %}
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="weather-card" style="background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border-radius: 20px; padding: 20px; color: white; text-align: center; border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s;">
+                    <div style="font-size: 2.5rem; margin-bottom: 10px;">{{ forecast.icon }}</div>
+                    <h3 style="font-size: 1.5rem; margin-bottom: 5px;">{{ forecast.date|date:"d.m" }}</h3>
+                    <p style="font-size: 1.2rem; margin: 0;">{{ forecast.condition }}</p>
+                    <div style="font-size: 2.5rem; font-weight: bold; margin: 10px 0;">
+                        {{ forecast.temperature_day }}°C
+                    </div>
+                    <div style="display: flex; justify-content: space-around; margin-top: 15px; font-size: 0.9rem;">
+                        <span><i class="bi bi-moon-stars"></i> {{ forecast.temperature_night }}°</span>
+                        <span><i class="bi bi-droplet"></i> {{ forecast.humidity }}%</span>
+                        <span><i class="bi bi-wind"></i> {{ forecast.wind_speed }}м/с</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-4">
+            <button class="btn btn-light btn-lg" onclick="updateWeather()">
+                <i class="bi bi-arrow-repeat"></i> Обновить прогноз
+            </button>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-12">
+                <div style="background: rgba(255,255,255,0.2); border-radius: 15px; padding: 20px; color: white;">
+                    <h5><i class="bi bi-info-circle"></i> Информация</h5>
+                    <p>Данные прогноза обновляются автоматически. Нажмите кнопку "Обновить" для получения нового прогноза.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateWeather() {
+    fetch('/api/update-weather/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+</script>
+
+<style>
+    .weather-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        background: rgba(255,255,255,0.3) !important;
+    }
+    .btn-outline-primary {
+        border-color: #667eea;
+        color: #667eea;
+        background: white;
+    }
+    .btn-outline-primary:hover {
+        background: #667eea;
+        color: white;
+    }
+</style>
+{% endblock %}
