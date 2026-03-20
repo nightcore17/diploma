@@ -2,22 +2,90 @@
 {% load static %}
 
 {% block content %}
-<!-- Виджет погоды на главной -->
+<style>
+    .glass-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        border-radius: 30px;
+        padding: 20px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        transition: all 0.3s ease;
+    }
+    .glass-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 25px 40px rgba(0, 0, 0, 0.1);
+    }
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 20px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        transition: 0.3s;
+    }
+    .stat-card .stat-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    .stat-card .stat-label {
+        font-size: 1rem;
+        opacity: 0.8;
+    }
+    .stat-card .stat-icon {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        font-size: 3rem;
+        opacity: 0.2;
+    }
+    .schema-element {
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+    }
+    .schema-element:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        z-index: 10;
+    }
+    .info-panel {
+        background: rgba(255,255,255,0.9);
+        border-radius: 20px;
+        padding: 20px;
+        height: 100%;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    }
+    .badge-normal { background-color: #28a745; color: white; }
+    .badge-warning { background-color: #ffc107; color: black; }
+    .badge-alarm { background-color: #dc3545; color: white; }
+    .pulse-animation {
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.6; }
+        100% { opacity: 1; }
+    }
+</style>
+
+<!-- Виджет погоды -->
 <div class="row mb-4">
     <div class="col-12">
         <div class="glass-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
                 <div>
                     <h4 class="mb-0"><i class="bi bi-cloud-sun"></i> Погода на неделю</h4>
                 </div>
-                <a href="{% url 'weather' %}" class="btn btn-light">
+                <a href="{% url 'weather' %}" class="btn btn-light mt-2 mt-sm-0">
                     <i class="bi bi-calendar-week"></i> Подробнее
                 </a>
             </div>
-            <div class="row mt-3">
+            <div class="row mt-3 g-2">
                 {% for forecast in forecasts|slice:":4" %}
-                <div class="col-md-3 col-6 text-center">
-                    <div style="background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); border-radius: 15px; padding: 10px; margin: 5px; border: 1px solid rgba(255,255,255,0.3);">
+                <div class="col-6 col-md-3 text-center">
+                    <div style="background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); border-radius: 15px; padding: 10px; border: 1px solid rgba(255,255,255,0.3);">
                         <div style="font-size: 2rem;">{{ forecast.icon }}</div>
                         <div style="font-size: 0.9rem;">{{ forecast.date|date:"d.m" }}</div>
                         <div><strong>{{ forecast.temperature_day }}°C</strong></div>
@@ -31,19 +99,19 @@
 </div>
 
 <!-- Статистика -->
-<div class="row mb-4">
+<div class="row mb-4 g-3">
     <div class="col-md-4">
-        <div class="stat-card">
-            <div class="stat-value">{{ avg_temperature }}°C</div>
-            <div class="stat-label">Средняя температура</div>
-            <i class="bi bi-thermometer-snow stat-icon"></i>
+        <div class="stat-card" style="background: linear-gradient(135deg, #0033a0 0%, #0066cc 100%);">
+            <div class="stat-value">6 м³</div>
+            <div class="stat-label">Загрузка сырья</div>
+            <i class="bi bi-box-seam stat-icon"></i>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="stat-card" style="background: linear-gradient(135deg, #0033a0 0%, #0066cc 100%);">
-            <div class="stat-value">{{ total_elements }}</div>
-            <div class="stat-label">Активных элементов</div>
-            <i class="bi bi-grid-3x3-gap-fill stat-icon"></i>
+        <div class="stat-card" style="background: linear-gradient(135deg, #ff8c00 0%, #ffaa00 100%);">
+            <div class="stat-value">Парафин</div>
+            <div class="stat-label">Тип сырья</div>
+            <i class="bi bi-droplet stat-icon"></i>
         </div>
     </div>
     <div class="col-md-4">
@@ -55,15 +123,15 @@
     </div>
 </div>
 
-<!-- Информация о бригаде -->
+<!-- Бригада -->
 <div class="row mb-4">
     <div class="col-12">
         <div class="glass-card">
-            <div class="d-flex align-items-center">
-                <div class="flex-shrink-0">
+            <div class="d-flex align-items-center flex-wrap">
+                <div class="flex-shrink-0 mb-2 mb-sm-0">
                     <i class="bi bi-people-fill" style="font-size: 3rem; color: #0033a0;"></i>
                 </div>
-                <div class="flex-grow-1 ms-3">
+                <div class="flex-grow-1 ms-0 ms-sm-3">
                     <h4 class="mb-1">{{ brigade.name }}</h4>
                     <p class="mb-0 text-muted">
                         <i class="bi bi-person-badge"></i> Бригадир: {{ brigade.leader }} | 
@@ -76,9 +144,9 @@
     </div>
 </div>
 
-<!-- СХЕМА (ТЕПЕРЬ ВИДНО!) -->
-<div class="row mb-4">
-    <div class="col-12">
+<!-- Схема + правая панель -->
+<div class="row">
+    <div class="col-lg-9">
         <div class="glass-card p-3" style="background: #f0f7ff;">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h4 class="mb-0">
@@ -90,89 +158,30 @@
                 </a>
             </div>
 
-            <!-- КЛИКАБЕЛЬНАЯ СХЕМА (БОЛЬШАЯ И ЧЁТКАЯ) -->
-            <a href="{% url 'full_schema' %}" style="display: block; text-decoration: none;">
-                <div style="position: relative; width: 100%; background: #d9e9ff; border-radius: 20px; padding: 20px; border: 2px solid #4a90e2;">
-                    
-                    <!-- ЗАГОЛОВОК СХЕМЫ -->
-                    <div style="text-align: center; color: #1a4a7a; font-weight: 600; font-size: 20px; margin-bottom: 15px;">
-                        СХЕМА ХОЛОДИЛЬНОГО ОТДЕЛЕНИЯ
-                    </div>
-
-                    <!-- КОНТЕЙНЕР С ЭЛЕМЕНТАМИ -->
-                    <div style="position: relative; height: 350px; background: rgba(255,255,255,0.5); border-radius: 15px;">
-
-                        <!-- КР (колонка слева) -->
-                        <div style="position: absolute; left: 5%; top: 10%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px solid #d32f2f;">КР-6</div>
-                        <div style="position: absolute; left: 5%; top: 22%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px solid #d32f2f;">КР-7</div>
-                        <div style="position: absolute; left: 5%; top: 34%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px solid #d32f2f;">КР-8</div>
-                        <div style="position: absolute; left: 5%; top: 46%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px solid #d32f2f;">КР-9</div>
-                        <div style="position: absolute; left: 5%; top: 58%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px solid #d32f2f;">КР-10</div>
-                        <div style="position: absolute; left: 5%; top: 70%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px solid #d32f2f;">КР-10а</div>
-
-                        <!-- РД, ОЖ -->
-                        <div style="position: absolute; left: 18%; top: 20%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">РД-1</div>
-                        <div style="position: absolute; left: 28%; top: 20%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">РД-2</div>
-                        <div style="position: absolute; left: 28%; top: 5%; width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center;">ОЖ-1</div>
-                        <div style="position: absolute; left: 28%; top: -2%; width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center;">ОЖ-2</div>
-
-                        <!-- Т -->
-                        <div style="position: absolute; left: 18%; top: 40%; width: 100px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">Т-27</div>
-                        <div style="position: absolute; left: 18%; top: 48%; width: 100px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">Т-27а</div>
-                        <div style="position: absolute; left: 18%; top: 56%; width: 100px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">Т-27б</div>
-                        <div style="position: absolute; left: 18%; top: 64%; width: 100px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">Т-27в</div>
-
-                        <!-- АДК (вверху справа) -->
-                        <div style="position: absolute; left: 45%; top: 5%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px solid #d32f2f;">АДК-3</div>
-                        <div style="position: absolute; left: 55%; top: 5%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px solid #d32f2f;">АДК-2</div>
-                        <div style="position: absolute; left: 65%; top: 5%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px solid #d32f2f;">АДК-1</div>
-
-                        <!-- ПС (вертикальные) -->
-                        <div style="position: absolute; left: 45%; top: 18%; width: 50px; height: 70px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center;">ПС-3</div>
-                        <div style="position: absolute; left: 55%; top: 18%; width: 50px; height: 70px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center;">ПС-2</div>
-                        <div style="position: absolute; left: 65%; top: 18%; width: 50px; height: 70px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center;">ПС-1</div>
-                        <div style="position: absolute; left: 88%; top: 18%; width: 50px; height: 70px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center;">ПС-4</div>
-
-                        <!-- МО -->
-                        <div style="position: absolute; left: 45%; top: 45%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">МО-3</div>
-                        <div style="position: absolute; left: 55%; top: 45%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">МО-2</div>
-                        <div style="position: absolute; left: 65%; top: 45%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">МО-1</div>
-
-                        <!-- АВО, ГЛ -->
-                        <div style="position: absolute; left: 40%; top: 60%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">АВО-5.5а</div>
-                        <div style="position: absolute; left: 50%; top: 65%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">ГЛ-1</div>
-
-                        <!-- КТВ (внизу) -->
-                        <div style="position: absolute; left: 45%; top: 80%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">КТВ-1</div>
-                        <div style="position: absolute; left: 55%; top: 80%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">КТВ-2</div>
-                        <div style="position: absolute; left: 65%; top: 80%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">КТВ-3</div>
-                        <div style="position: absolute; left: 75%; top: 80%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">КТВ-4</div>
-                        <div style="position: absolute; left: 85%; top: 80%; width: 70px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">КТВ-5</div>
-
-                        <!-- ДАО-550 (большой круг) -->
-                        <div style="position: absolute; left: 75%; top: 30%; width: 120px; height: 120px; background: radial-gradient(circle, #ffffff, #f0faff); border-radius: 50%; border: 3px solid white; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                            <span style="font-size: 30px;">❄️</span>
-                            <b>ДАО-550</b>
-                        </div>
-
-                        <!-- РЛ -->
-                        <div style="position: absolute; left: 88%; top: 45%; width: 100px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">РЛ-1</div>
-                        <div style="position: absolute; left: 88%; top: 53%; width: 100px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">РЛ-2</div>
-                        <div style="position: absolute; left: 88%; top: 61%; width: 100px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;">РЛ-3</div>
-
-                        <!-- РЛ-4 (большой) -->
-                        <div style="position: absolute; left: 80%; top: 68%; width: 200px; height: 70px; background: white; border-radius: 15px; display: flex; align-items: center; justify-content: center; border: 2px solid #4a90e2;">
-                            <b style="font-size: 18px;">РЛ-4</b>
-                        </div>
-
-                    </div>
-
-                    <!-- Подсказка -->
-                    <div style="text-align: center; margin-top: 15px; color: #2c3e50;">
-                        <i class="bi bi-hand-index"></i> Нажмите на схему, чтобы открыть полную версию
-                    </div>
+            <div style="position: relative; width: 100%; background: #d9e9ff; border-radius: 20px; padding: 20px; border: 2px solid #4a90e2; overflow-x: auto;">
+                <div style="position: relative; height: 500px; min-width: 1200px;">
+                    {% for element in elements %}
+                        <a href="{% url 'element_detail' element.id %}" 
+                           class="schema-element" 
+                           style="position: absolute; left: {{ element.pos_x }}px; top: {{ element.pos_y }}px; width: 75px; height: 45px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px solid #0033a0; font-size: 12px; text-decoration: none; color: #0033a0;">
+                            {{ element.name }}
+                            <span class="val" style="margin-left: 5px;">{{ element.temperature }}°</span>
+                        </a>
+                    {% endfor %}
                 </div>
-            </a>
+                <div class="text-center mt-2 text-muted small">
+                    <i class="bi bi-hand-index"></i> Нажмите на элемент, чтобы открыть детали
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3">
+        <div class="info-panel" id="info-panel">
+            <div class="text-center py-5">
+                <i class="bi bi-hand-index-thumb" style="font-size: 3rem; color: #cbd5e0;"></i>
+                <p class="text-muted mt-3">Нажмите на элемент схемы<br>для просмотра деталей</p>
+            </div>
         </div>
     </div>
 </div>
@@ -182,30 +191,21 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header" style="background: linear-gradient(135deg, #0033a0 0%, #ff0000 100%); color: white;">
-                <h5 class="modal-title">
-                    <i class="bi bi-pencil-square me-2"></i>
-                    Редактирование элемента
-                </h5>
+                <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Редактирование элемента</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="element-id">
                 <div class="mb-3">
-                    <label class="form-label">
-                        <i class="bi bi-thermometer-half me-2" style="color: #0033a0;"></i>Температура (°C)
-                    </label>
+                    <label class="form-label"><i class="bi bi-thermometer-half me-2" style="color: #0033a0;"></i>Температура (°C)</label>
                     <input type="number" step="0.1" class="form-control" id="temperature">
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">
-                        <i class="bi bi-speedometer2 me-2" style="color: #ff0000;"></i>Давление (бар)
-                    </label>
+                    <label class="form-label"><i class="bi bi-speedometer2 me-2" style="color: #ff0000;"></i>Давление (бар)</label>
                     <input type="number" step="0.1" class="form-control" id="pressure">
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">
-                        <i class="bi bi-exclamation-triangle me-2" style="color: #ff0000;"></i>Статус
-                    </label>
+                    <label class="form-label"><i class="bi bi-exclamation-triangle me-2" style="color: #ff0000;"></i>Статус</label>
                     <select class="form-control" id="status">
                         <option value="normal">✅ Норма</option>
                         <option value="warning">⚠️ Предупреждение</option>
@@ -214,12 +214,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="bi bi-x-lg"></i> Отмена
-                </button>
-                <button type="button" class="btn" style="background: linear-gradient(135deg, #0033a0 0%, #ff0000 100%); color: white;" onclick="saveElement()">
-                    <i class="bi bi-check-lg"></i> Сохранить
-                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn" style="background: linear-gradient(135deg, #0033a0 0%, #ff0000 100%); color: white;" onclick="saveElement()">Сохранить</button>
             </div>
         </div>
     </div>
@@ -231,7 +227,6 @@ const elements = {{ elements_json|safe }};
 function showInfo(id) {
     const el = elements.find(e => e.id === id);
     const panel = document.getElementById('info-panel');
-    
     panel.innerHTML = `
         <div class="text-center mb-4">
             <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #0033a0 0%, #ff0000 100%); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
@@ -240,7 +235,6 @@ function showInfo(id) {
             <h4 class="mt-3 mb-1">${el.name}</h4>
             <span class="element-badge badge-${el.status}">${el.status === 'normal' ? '✅ Норма' : el.status === 'warning' ? '⚠️ Внимание' : '🚨 Авария'}</span>
         </div>
-        
         <div class="row g-3 mb-4">
             <div class="col-6">
                 <div class="p-3" style="background: linear-gradient(135deg, #0033a0 0%, #0066cc 100%); color: white; border-radius: 10px;">
@@ -257,14 +251,9 @@ function showInfo(id) {
                 </div>
             </div>
         </div>
-        
         <div class="d-grid gap-2">
-            <button class="btn" style="background: linear-gradient(135deg, #0033a0 0%, #ff0000 100%); color: white;" onclick="editElement(${el.id})">
-                <i class="bi bi-pencil-square"></i> Редактировать
-            </button>
-            <a href="/element/${el.id}" class="btn btn-outline-primary" style="border-color: #0033a0; color: #0033a0;">
-                <i class="bi bi-box-arrow-up-right"></i> Подробнее
-            </a>
+            <button class="btn" style="background: linear-gradient(135deg, #0033a0 0%, #ff0000 100%); color: white;" onclick="editElement(${el.id})">Редактировать</button>
+            <a href="/element/${el.id}" class="btn btn-outline-primary" style="border-color: #0033a0; color: #0033a0;">Подробнее</a>
         </div>
     `;
 }
@@ -275,7 +264,6 @@ function editElement(id) {
     document.getElementById('temperature').value = el.temperature;
     document.getElementById('pressure').value = el.pressure;
     document.getElementById('status').value = el.status;
-    
     new bootstrap.Modal(document.getElementById('editModal')).show();
 }
 
@@ -286,7 +274,6 @@ function saveElement() {
         pressure: parseFloat(document.getElementById('pressure').value),
         status: document.getElementById('status').value
     };
-    
     fetch('/api/update-element/', {
         method: 'POST',
         headers: {
@@ -297,15 +284,11 @@ function saveElement() {
     })
     .then(response => response.json())
     .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('Ошибка: ' + data.error);
-        }
+        if (data.success) location.reload();
+        else alert('Ошибка: ' + data.error);
     });
 }
 
-// Автообновление каждые 10 секунд
 setInterval(() => {
     fetch('/api/get-data/')
         .then(response => response.json())

@@ -1,158 +1,24 @@
 {% extends 'main/base.html' %}
 {% block content %}
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;600&display=swap');
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between mb-3">
+        <a href="{% url 'home' %}" class="btn btn-outline-primary"><i class="bi bi-arrow-left"></i> На главную</a>
+    </div>
 
-    .ice-body {
-        background: #f0f7ff;
-        font-family: 'Exo 2', sans-serif;
-        min-height: 100vh;
-        padding: 20px;
-    }
-
-    .ice-viewport {
-        position: relative;
-        width: 1400px;
-        height: 850px;
-        margin: 0 auto;
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(10px);
-        border: 2px solid #ffffff;
-        border-radius: 30px;
-        box-shadow: 0 20px 50px rgba(180, 200, 230, 0.3);
-        overflow: hidden;
-    }
-
-    .ice-edge {
-        position: absolute; width: 100%; height: 100%;
-        pointer-events: none; z-index: 20;
-        box-shadow: inset 0 0 100px rgba(173, 216, 230, 0.2);
-        background: 
-            linear-gradient(45deg, rgba(255,255,255,0.4) 0%, transparent 15%),
-            linear-gradient(-135deg, rgba(255,255,255,0.4) 0%, transparent 15%);
-    }
-
-    .scada-title {
-        text-align: center; padding: 25px; color: #1a4a7a;
-        font-weight: 600; font-size: 28px; letter-spacing: 2px;
-    }
-
-    .unit {
-        position: absolute; background: white; border: 1px solid #cde4ff;
-        border-radius: 8px; color: #2c3e50; text-decoration: none;
-        display: flex; flex-direction: column; align-items: center;
-        justify-content: center; font-size: 12px; font-weight: 600;
-        transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-    }
-    .unit:hover { transform: scale(1.05); border-color: #3498db; box-shadow: 0 5px 15px rgba(52, 152, 219, 0.2); }
-    .unit .val { color: #3498db; font-size: 11px; margin-top: 2px; }
-
-    .rect { width: 75px; height: 45px; }
-    .wide { width: 110px; height: 45px; }
-    .vessel { width: 60px; height: 90px; border-radius: 10px 10px 20px 20px; }
-    .circle { width: 60px; height: 60px; border-radius: 50%; }
-    .big { width: 160px; height: 160px; border-radius: 50%; border: 3px solid #e1f0ff; }
-
-    .c1 { left: 50px; }   .c2 { left: 160px; }  .c3 { left: 270px; }
-    .c4 { left: 450px; }  .c5 { left: 580px; }  .c6 { left: 710px; }
-    .c7 { left: 950px; }  .c8 { left: 1150px; }
-
-    .r1 { top: 100px; } .r2 { top: 160px; } .r3 { top: 220px; }
-    .r4 { top: 280px; } .r5 { top: 340px; } .r6 { top: 400px; } .r7 { top: 460px; }
-
-    .snowflake {
-        position: absolute; top: -10px; color: #3498db; opacity: 0.3;
-        pointer-events: none; animation: fall linear infinite;
-    }
-    @keyframes fall { to { transform: translateY(850px); } }
-</style>
-
-<div class="ice-body">
-    <div class="ice-viewport" id="viewport">
-        <div class="ice-edge"></div>
-        <div class="scada-title">❄️ СХЕМА ХОЛОДИЛЬНОГО ОТДЕЛЕНИЯ ❄️</div>
-
-        <!-- KP -->
-        <a href="/element/1" class="unit rect c1 r1">КР-6 <span class="val">-18°</span></a>
-        <a href="/element/2" class="unit rect c1 r2">КР-7 <span class="val">-22°</span></a>
-        <a href="/element/3" class="unit rect c1 r3">КР-8 <span class="val">-20°</span></a>
-        <a href="/element/4" class="unit rect c1 r4">КР-9 <span class="val">-24°</span></a>
-        <a href="/element/5" class="unit rect c1 r5">КР-10 <span class="val">-19°</span></a>
-        <a href="/element/6" class="unit rect c1 r6">КР-10а <span class="val">-21°</span></a>
-
-        <!-- РД, ОЖ -->
-        <a href="/element/7" class="unit rect c2 r2">РД-1</a>
-        <a href="/element/8" class="unit rect c3 r2">РД-2</a>
-        <a href="/element/9" class="unit circle c3 r1">ОЖ-1 <span class="val">-5°</span></a>
-        <a href="/element/10" class="unit circle c3" style="top:30px;">ОЖ-2 <span class="val">-6°</span></a>
-
-        <!-- Т -->
-        <a href="/element/11" class="unit wide c2 r4">Т-27 <span class="val">-12°</span></a>
-        <a href="/element/12" class="unit wide c2 r5">Т-27а <span class="val">-13°</span></a>
-        <a href="/element/13" class="unit wide c2 r6">Т-27б <span class="val">-14°</span></a>
-        <a href="/element/14" class="unit wide c2 r7">Т-27в <span class="val">-15°</span></a>
-
-        <!-- АДК -->
-        <a href="/element/15" class="unit rect c4" style="top:50px;">АДК-3 <span class="val">+3°</span></a>
-        <a href="/element/16" class="unit rect c5" style="top:50px;">АДК-2 <span class="val">+2°</span></a>
-        <a href="/element/17" class="unit rect c6" style="top:50px;">АДК-1 <span class="val">+1°</span></a>
-
-        <!-- ПС -->
-        <a href="/element/18" class="unit vessel c4 r2">ПС-3 <span class="val">2.3 bar</span></a>
-        <a href="/element/19" class="unit vessel c5 r2">ПС-2 <span class="val">2.1 bar</span></a>
-        <a href="/element/20" class="unit vessel c6 r2">ПС-1 <span class="val">2.4 bar</span></a>
-        <a href="/element/21" class="unit vessel c8 r2">ПС-4 <span class="val">2.0 bar</span></a>
-
-        <!-- МО -->
-        <a href="/element/22" class="unit rect c4 r6">МО-3</a>
-        <a href="/element/23" class="unit rect c5 r6">МО-2</a>
-        <a href="/element/24" class="unit rect c6 r6">МО-1</a>
-
-        <!-- АВО, ГЛ -->
-        <a href="/element/25" class="unit rect" style="top:350px; left:350px;">АВО-5.5а <span class="val">+25°</span></a>
-        <a href="/element/26" class="unit rect" style="top:380px; left:480px;">ГЛ-1</a>
-
-        <!-- КТВ -->
-        <a href="/element/27" class="unit rect c4" style="top:650px;">КТВ-1</a>
-        <a href="/element/28" class="unit rect c5" style="top:650px;">КТВ-2</a>
-        <a href="/element/29" class="unit rect c6" style="top:650px;">КТВ-3</a>
-        <a href="/element/30" class="unit rect" style="top:650px; left:840px;">КТВ-4</a>
-        <a href="/element/31" class="unit rect" style="top:650px; left:970px;">КТВ-5</a>
-
-        <!-- ДАО-550 -->
-        <a href="/element/32" class="unit big c7 r1" style="background: linear-gradient(135deg, #ffffff 0%, #f0faff 100%);">
-            <span style="font-size: 40px;">❄️</span>
-            <b>ДАО-550</b>
-            <span class="val" style="font-size: 16px;">-32°C</span>
-        </a>
-
-        <!-- РЛ -->
-        <a href="/element/33" class="unit wide c8 r5">РЛ-1 <span class="val">-4°</span></a>
-        <a href="/element/34" class="unit wide c8 r6">РЛ-2 <span class="val">-5°</span></a>
-        <a href="/element/35" class="unit wide c8 r7">РЛ-3 <span class="val">-6°</span></a>
-
-        <!-- РЛ-4 большой -->
-        <a href="/element/36" class="unit" style="left: 1050px; top: 600px; width: 280px; height: 120px; border-radius: 20px; background: white;">
-            <b style="font-size: 20px;">РЛ-4</b>
-            <span class="val" style="font-size: 18px;">-7°C</span>
-        </a>
+    <div class="glass-card p-3" style="background: #f0f7ff;">
+        <h3 class="text-center mb-4">❄️ Полная схема холодильного отделения</h3>
+        <div style="position: relative; width: 100%; background: #d9e9ff; border-radius: 20px; padding: 20px; border: 2px solid #4a90e2; overflow-x: auto;">
+            <div style="position: relative; height: 700px; min-width: 1400px;">
+                {% for element in elements %}
+                    <a href="{% url 'element_detail' element.id %}" 
+                       class="schema-element" 
+                       style="position: absolute; left: {{ element.pos_x }}px; top: {{ element.pos_y }}px; width: 75px; height: 45px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px solid #0033a0; font-size: 12px; text-decoration: none; color: #0033a0;">
+                        {{ element.name }}
+                        <span class="val" style="margin-left: 5px;">{{ element.temperature }}°</span>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
     </div>
 </div>
-
-<script>
-    function createSnow() {
-        const vp = document.getElementById('viewport');
-        for (let i = 0; i < 40; i++) {
-            let s = document.createElement('div');
-            s.className = 'snowflake';
-            s.innerHTML = '❄';
-            s.style.left = Math.random() * 100 + '%';
-            s.style.animationDuration = (Math.random() * 5 + 3) + 's';
-            s.style.animationDelay = Math.random() * 5 + 's';
-            s.style.fontSize = Math.random() * 15 + 5 + 'px';
-            vp.appendChild(s);
-        }
-    }
-    createSnow();
-</script>
 {% endblock %}

@@ -1,89 +1,44 @@
 {% extends 'main/base.html' %}
 {% block content %}
-<style>
-    .detail-card {
-        max-width: 600px;
-        margin: 50px auto;
-        background: rgba(255, 255, 255, 0.25);
-        backdrop-filter: blur(15px);
-        border-radius: 48px;
-        padding: 40px;
-        border: 2px solid rgba(255, 255, 255, 0.8);
-        box-shadow: 0 30px 50px rgba(0, 40, 80, 0.3);
-        color: #003057;
-        font-family: 'Exo 2', sans-serif;
-    }
-    .value {
-        font-size: 32px;
-        font-weight: 700;
-    }
-    .label {
-        font-size: 16px;
-        opacity: 0.8;
-        margin-top: 10px;
-    }
-    .status-badge {
-        display: inline-block;
-        padding: 5px 15px;
-        border-radius: 50px;
-        font-weight: 600;
-        background: rgba(255,255,255,0.3);
-    }
-</style>
-
-<div class="detail-card">
-    <h1 class="text-center mb-4" style="font-size: 42px;">❄️ {{ element.name }}</h1>
-    
-    <div class="row mb-4">
-        <div class="col-6">
-            <div class="label">Тип</div>
-            <div class="value">{{ element.get_element_type_display }}</div>
-        </div>
-        <div class="col-6">
-            <div class="label">Статус</div>
-            <div class="value status-badge" style="color: 
-                {% if element.status == 'active' %}#2ecc71
-                {% elif element.status == 'warning' %}#f39c12
-                {% elif element.status == 'alarm' %}#e74c3c
-                {% else %}#95a5a6{% endif %};">
-                {{ element.get_status_display }}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="glass-card p-4" style="background: white; border-radius: 30px;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="bi bi-cpu me-2"></i>{{ element.name }}</h2>
+                    <span class="badge bg-{{ element.status }} fs-6">{{ element.get_status_display }}</span>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="p-3 bg-light rounded">
+                            <small class="text-muted">Тип</small>
+                            <h4>{{ element.get_element_type_display }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="p-3 bg-light rounded">
+                            <small class="text-muted">Температура</small>
+                            <h4>{{ element.temperature }} °C</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="p-3 bg-light rounded">
+                            <small class="text-muted">Давление</small>
+                            <h4>{{ element.pressure }} бар</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="p-3 bg-light rounded">
+                            <small class="text-muted">Координаты</small>
+                            <h4>X: {{ element.pos_x }}, Y: {{ element.pos_y }}</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 text-center">
+                    <a href="{% url 'full_schema' %}" class="btn btn-outline-primary">← Вернуться к схеме</a>
+                </div>
             </div>
         </div>
     </div>
-
-    <div class="row mb-4">
-        <div class="col-6">
-            <div class="label">Температура</div>
-            <div class="value">{{ element.temperature }} °C</div>
-        </div>
-        <div class="col-6">
-            <div class="label">Давление</div>
-            <div class="value">{{ element.pressure }} бар</div>
-        </div>
-    </div>
-
-    {% if element.description %}
-    <div class="mb-4">
-        <div class="label">Описание</div>
-        <div class="p-3" style="background: rgba(255,255,255,0.2); border-radius: 20px;">
-            {{ element.description }}
-        </div>
-    </div>
-    {% endif %}
-
-    <div class="row mb-4">
-        <div class="col-6">
-            <div class="label">Координаты</div>
-            <div>X: {{ element.position_x }}, Y: {{ element.position_y }}</div>
-        </div>
-        <div class="col-6">
-            <div class="label">Размеры</div>
-            <div>{{ element.width }} x {{ element.height }}</div>
-        </div>
-    </div>
-
-    <a href="{% url 'full_schema' %}" class="btn w-100 mt-3" style="background: rgba(255,255,255,0.3); border: 2px solid white; color: #003057; font-weight: 600; padding: 15px;">
-        ← Назад к схеме
-    </a>
 </div>
 {% endblock %}

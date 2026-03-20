@@ -5,7 +5,6 @@ from .models import RefrigerationElement, Brigade, WeatherForecast
 import json
 import random
 from datetime import date, timedelta
-from django.db.models import Avg
 
 def get_weather_forecast():
     today = date.today()
