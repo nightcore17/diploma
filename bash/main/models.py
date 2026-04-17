@@ -1,60 +1,75 @@
 from django.db import models
 
 class Brigade(models.Model):
-    name = models.CharField(max_length=100, verbose_name="Название")
-    leader = models.CharField(max_length=100, verbose_name="Бригадир")
-    is_working = models.BooleanField(default=True, verbose_name="Работает")
+    name = models.CharField(max_length=100)
+    leader = models.CharField(max_length=100)
+    is_working = models.BooleanField(default=True)
     
     def __str__(self):
         return self.name
-
-class WeatherForecast(models.Model):
-    date = models.DateField(verbose_name="Дата")
-    temperature_day = models.IntegerField(verbose_name="Температура днем")
-    temperature_night = models.IntegerField(verbose_name="Температура ночью")
-    condition = models.CharField(max_length=50, verbose_name="Погода", default="Ясно")
-    humidity = models.IntegerField(default=70, verbose_name="Влажность")
-    wind_speed = models.IntegerField(default=3, verbose_name="Ветер, м/с")
-    icon = models.CharField(max_length=20, default="☀️")
-    
-    class Meta:
-        ordering = ['date']
-
-    def __str__(self):
-        return f"{self.date}: {self.temperature_day}°C"
 
 class RefrigerationElement(models.Model):
     ELEMENT_TYPES = [
         ('kp', 'Кристаллизатор'),
+        ('t', 'Теплообменник'),
         ('compressor', 'Компрессор'),
         ('rd', 'Ресивер дренажный'),
         ('oz', 'Отделитель жидкости'),
-        ('t', 'Теплообменник'),
         ('ps', 'Промышленный сосуд'),
         ('mo', 'Маслоотделитель'),
-        ('avo', 'Аппарат воздушного охлаждения'),
+        ('avo', 'АВО'),
         ('gl', 'Гаситель пульсаций'),
         ('ktv', 'Конденсатор'),
         ('rl', 'Ресивер линейный'),
+        ('ms', 'Маслосборник'),
     ]
     
     STATUS_CHOICES = [
-        ('normal', 'Норма'),
-        ('warning', 'Предупреждение'),
-        ('alarm', 'Авария'),
+        ('normal', '✅ В работе'),
+        ('warning', '⚠️ Внимание'),
+        ('alarm', '🔴 Авария'),
+        ('stopped', '⏹️ Остановлен'),
     ]
     
-    name = models.CharField(max_length=100, verbose_name="Название")
-    element_type = models.CharField(max_length=20, choices=ELEMENT_TYPES, default='kp', verbose_name="Тип")
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='normal', verbose_name="Статус")
-    temperature = models.FloatField(default=0, verbose_name="Температура (°C)")
-    pressure = models.FloatField(default=0, verbose_name="Давление (бар)")
-    pos_x = models.IntegerField(default=0, verbose_name="Координата X")
-    pos_y = models.IntegerField(default=0, verbose_name="Координата Y")
+    name = models.CharField(max_length=100)
+    element_type = models.CharField(max_length=20, choices=ELEMENT_TYPES, default='kp')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='normal')
     
-    class Meta:
-        verbose_name = "Элемент схемы"
-        verbose_name_plural = "Элементы схемы"
+    # Общие параметры
+    temperature = models.FloatField(default=0, verbose_name="Температура сырья")
+    ammonia_temp = models.FloatField(default=0, verbose_name="Температура аммиака")
+    pressure = models.FloatField(default=0, verbose_name="Давление")
+    level = models.FloatField(default=50, verbose_name="Уровень (%)")
+    
+    # Специфические параметры для компрессоров
+    discharge_temp_stage1 = models.FloatField(default=0, verbose_name="Температура нагнетания 1 ступени")
+    discharge_temp_stage2 = models.FloatField(default=0, verbose_name="Температура нагнетания 2 ступени")
+    
+    # Позиция на схеме
+    pos_x = models.IntegerField(default=0)
+    pos_y = models.IntegerField(default=0)
     
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.get_element_type_display()})"
+    
+    def stop_element(self):
+        """Остановка аппарата"""
+        self.status = 'stopped'
+        self.save()
+    
+    def start_element(self):
+        """Запуск аппарата"""
+        self.status = 'normal'
+        self.save()
+
+class WeatherForecast(models.Model):
+    date = models.DateField()
+    temperature_day = models.IntegerField()
+    temperature_night = models.IntegerField()
+    condition = models.CharField(max_length=50, default="Ясно")
+    humidity = models.IntegerField(default=70)
+    wind_speed = models.IntegerField(default=3)
+    icon = models.CharField(max_length=20, default="☀️")
+    
+    def __str__(self):
+        return f"{self.date} - {self.condition}"

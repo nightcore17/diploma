@@ -1,24 +1,821 @@
 {% extends 'main/base.html' %}
+{% load static %}
+
 {% block content %}
+<style>
+    body {
+        background: linear-gradient(135deg, #e0f0ff 0%, #b8d4f0 100%);
+        font-family: 'Segoe UI', 'Exo 2', sans-serif;
+    }
+    .schema-container { 
+        background: linear-gradient(145deg, #eef5fc, #e0eef8);
+        padding: 25px; 
+        border-radius: 28px; 
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255,255,255,0.8);
+        overflow: auto;
+        border: 1px solid rgba(78, 192, 233, 0.4);
+    }
+    .node-rect { fill: #ffffff; stroke: #2c7cb6; stroke-width: 1.5; }
+    .node-rect-round { fill: #ffffff; stroke: #2c7cb6; stroke-width: 1.5; rx: 8; ry: 8; }
+    .node-circle { fill: #ffffff; stroke: #2c7cb6; stroke-width: 1.8; }
+    .node-text { fill: #1a4d6e; font-family: 'Segoe UI', 'Exo 2', sans-serif; font-size: 11px; font-weight: 500; pointer-events: none; }
+    
+    .clickable { cursor: pointer; transition: all 0.2s; }
+    .clickable:hover { filter: drop-shadow(0 0 8px rgba(44, 124, 182, 0.5)); transform: scale(1.02); }
+    
+    /* Статусы элементов */
+    .status-stopped { opacity: 0.6; filter: grayscale(0.5); }
+    .status-alarm { animation: pulse-red 1s infinite; }
+    
+    @keyframes pulse-red {
+        0%, 100% { filter: drop-shadow(0 0 5px rgba(255, 0, 0, 0.3)); }
+        50% { filter: drop-shadow(0 0 15px rgba(255, 0, 0, 0.7)); }
+    }
+    
+    .green-bar { fill: #2ecc71; opacity: 0.8; }
+    .clickable:hover .green-bar { opacity: 1; filter: drop-shadow(0 0 4px #2ecc71); }
+    
+    .line { fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transition: all 0.2s; }
+    .line-green { stroke: #2c9b6e; }
+    .line-yellow { stroke: #d9a13b; }
+    .line-purple { stroke: #b565a7; }
+    .line-blue { stroke: #4a9fd8; }
+    
+    .ice-title { text-align: center; color: #1a5f8a; font-size: 28px; font-weight: 500; margin-bottom: 20px; letter-spacing: 2px; }
+    
+    .legend-elegant {
+        background: linear-gradient(145deg, #f0f8ff, #e8f0f8);
+        border-radius: 20px;
+        padding: 15px 25px;
+        margin-bottom: 25px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 25px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255,255,255,0.9);
+        border: 1px solid rgba(74, 159, 216, 0.3);
+    }
+    .legend-item-elegant {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 12px;
+        color: #1a5f8a;
+        padding: 5px 12px;
+        border-radius: 40px;
+        background: rgba(255,255,255,0.6);
+        transition: all 0.2s;
+    }
+    .legend-dot { width: 24px; height: 4px; border-radius: 3px; }
+    .legend-dot-green { background: #2c9b6e; }
+    .legend-dot-yellow { background: #d9a13b; }
+    .legend-dot-purple { background: #b565a7; }
+    .legend-dot-blue { background: #4a9fd8; }
+    
+    .modal-ice .modal-content {
+        background: linear-gradient(145deg, #eef5fc, #e0eef8);
+        border-radius: 28px;
+        border: 1px solid #4a9fd8;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
+    .modal-ice .modal-header {
+        background: linear-gradient(135deg, #2c7cb6, #1a5f8a);
+        color: white;
+        border-radius: 28px 28px 0 0;
+        border: none;
+    }
+    .param-value { font-size: 48px; font-weight: 600; color: #1a5f8a; text-align: center; }
+    
+    /* Стили для шкалы уровня */
+    .level-container { margin: 20px 0; }
+    
+    .level-bar {
+        width: 100%;
+        height: 40px;
+        background: linear-gradient(90deg, #e74c3c 0%, #f39c12 50%, #2ecc71 100%);
+        border-radius: 20px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .level-fill {
+        height: 100%;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
+        transition: width 0.3s ease;
+    }
+    
+    .level-marker {
+        position: absolute;
+        top: -5px;
+        width: 4px;
+        height: 50px;
+        background: white;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        transform: translateX(-50%);
+        border-radius: 2px;
+    }
+    
+    .level-value {
+        font-size: 32px;
+        font-weight: 600;
+        color: #1a5f8a;
+        text-align: center;
+        margin-top: 10px;
+    }
+    
+    .level-labels {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 5px;
+        font-size: 12px;
+        color: #666;
+    }
+    
+    /* Стили для остановленных элементов */
+    .element-stopped {
+        opacity: 0.6;
+        filter: grayscale(0.7);
+    }
+    
+    .stopped-badge {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background: #95a5a6;
+        color: white;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+    }
+</style>
+
 <div class="container-fluid py-4">
-    <div class="d-flex justify-content-between mb-3">
-        <a href="{% url 'home' %}" class="btn btn-outline-primary"><i class="bi bi-arrow-left"></i> На главную</a>
+    <div class="ice-title">❄️ ХОЛОДИЛЬНОЕ ОТДЕЛЕНИЕ ❄️</div>
+    
+    <div class="legend-elegant">
+        <div class="legend-item-elegant"><div class="legend-dot legend-dot-green"></div><span>Отсос паров (КР, Т, РЛ)</span></div>
+        <div class="legend-item-elegant"><div class="legend-dot legend-dot-yellow"></div><span>Нагнетание 1 ступени (АДК, ДАО → ПС)</span></div>
+        <div class="legend-item-elegant"><div class="legend-dot legend-dot-purple"></div><span>Нагнетание 2 ступени (АДК, ДАО → МО)</span></div>
+        <div class="legend-item-elegant"><div class="legend-dot legend-dot-blue"></div><span>Пары к ресиверам (МО → РЛ)</span></div>
     </div>
 
-    <div class="glass-card p-3" style="background: #f0f7ff;">
-        <h3 class="text-center mb-4">❄️ Полная схема холодильного отделения</h3>
-        <div style="position: relative; width: 100%; background: #d9e9ff; border-radius: 20px; padding: 20px; border: 2px solid #4a90e2; overflow-x: auto;">
-            <div style="position: relative; height: 700px; min-width: 1400px;">
+    <div class="schema-container">
+        <svg width="1400" height="900" viewBox="0 0 1400 900">
+            <rect width="1400" height="900" fill="transparent" />
+            <g id="pipelines">
+                <path d="M 100 20 L 1320 20 L 1320 820" class="line line-green" /> 
+                <path d="M 100 20 L 100 620" class="line line-green" /> 
+                <path d="M 280 20 L 280 145" class="line line-green" />
+                <path d="M 280 145 L 305 145" class="line line-green" /> 
+                <path d="M 280 20 L 305 20" class="line line-green" />
+                <path d="M 100 402 L 140 402" class="line line-green" /> 
+                <path d="M 100 472 L 140 472" class="line line-green" /> 
+                <path d="M 100 542 L 140 542" class="line line-green" /> 
+                <path d="M 100 612 L 140 612" class="line line-green" />
+                <path d="M 1320 20 L 1320 390 L 1145 390" class="line line-green" />
+                <path d="M 1320 20 L 1320 480 L 1145 480" class="line line-green" />
+                <path d="M 1320 20 L 1320 570 L 1145 570" class="line line-green" />
+                <path d="M 1320 20 L 1320 820 L 1160 820" class="line line-green" />
+                <path d="M 1320 20 L 1320 240 L 850 380" class="line line-green" />
+                <path d="M 240 280 L 1080 280" class="line line-yellow" />
+                <path d="M 460 110 L 460 280" class="line line-yellow" /> 
+                <path d="M 620 110 L 620 280" class="line line-yellow" />
+                <path d="M 780 110 L 780 280" class="line line-yellow" />
+                <path d="M 965 140 L 965 280" class="line line-yellow" />
+                <path d="M 1020 250 L 1020 280" class="line line-yellow" />
+                <path d="M 480 110 L 550 360" class="line line-purple" />
+                <path d="M 640 110 L 650 360" class="line line-purple" />
+                <path d="M 800 110 L 750 360" class="line line-purple" />
+                <path d="M 965 140 L 650 360" class="line line-purple" />
+                <path d="M 330 460 L 1050 460" class="line line-blue" />
+                <path d="M 330 565 L 980 565" class="line line-blue" /> 
+                <path d="M 550 420 L 550 460" class="line line-blue" />
+                <path d="M 650 420 L 650 460" class="line line-blue" />
+                <path d="M 750 420 L 750 460" class="line line-blue" />
+                <path d="M 380 460 L 380 650" class="line line-blue" />
+                <path d="M 500 460 L 500 650" class="line line-blue" />
+                <path d="M 620 460 L 620 650" class="line line-blue" />
+                <path d="M 740 460 L 740 650" class="line line-blue" />
+                <path d="M 860 460 L 860 650" class="line line-blue" />
+                <path d="M 980 565 L 980 415 L 1100 415" class="line line-blue" />
+                <path d="M 980 565 L 980 505 L 1100 505" class="line line-blue" />
+                <path d="M 980 565 L 980 595 L 1100 595" class="line line-blue" />
+                <path d="M 980 565 L 980 770 L 1100 770 L 1100 820" class="line line-blue" />
+            </g>
+            <g id="nodes">
                 {% for element in elements %}
-                    <a href="{% url 'element_detail' element.id %}" 
-                       class="schema-element" 
-                       style="position: absolute; left: {{ element.pos_x }}px; top: {{ element.pos_y }}px; width: 75px; height: 45px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px solid #0033a0; font-size: 12px; text-decoration: none; color: #0033a0;">
-                        {{ element.name }}
-                        <span class="val" style="margin-left: 5px;">{{ element.temperature }}°</span>
-                    </a>
+                    {% if element.name == "КР-6" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% elif element.status == 'alarm' %}status-alarm{% endif %}">
+                            <rect x="20" y="100" width="70" height="45" class="node-rect"/>
+                            <rect x="20" y="100" width="6" height="45" class="green-bar" rx="3"/>
+                            <text x="55" y="128" text-anchor="middle" class="node-text">КР-6</text>
+                            <text x="55" y="141" text-anchor="middle" class="node-text" style="font-size: 9px;">{{ element.temperature|floatformat:1 }}°</text>
+                        </g>
+                    {% elif element.name == "КР-7" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% elif element.status == 'alarm' %}status-alarm{% endif %}">
+                            <rect x="20" y="170" width="70" height="45" class="node-rect"/>
+                            <rect x="20" y="170" width="6" height="45" class="green-bar" rx="3"/>
+                            <text x="55" y="198" text-anchor="middle" class="node-text">КР-7</text>
+                            <text x="55" y="211" text-anchor="middle" class="node-text" style="font-size: 9px;">{{ element.temperature|floatformat:1 }}°</text>
+                        </g>
+                    {% elif element.name == "КР-8" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% elif element.status == 'alarm' %}status-alarm{% endif %}">
+                            <rect x="20" y="240" width="70" height="45" class="node-rect"/>
+                            <rect x="20" y="240" width="6" height="45" class="green-bar" rx="3"/>
+                            <text x="55" y="268" text-anchor="middle" class="node-text">КР-8</text>
+                            <text x="55" y="281" text-anchor="middle" class="node-text" style="font-size: 9px;">{{ element.temperature|floatformat:1 }}°</text>
+                        </g>
+                    {% elif element.name == "КР-9" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% elif element.status == 'alarm' %}status-alarm{% endif %}">
+                            <rect x="20" y="310" width="70" height="45" class="node-rect"/>
+                            <rect x="20" y="310" width="6" height="45" class="green-bar" rx="3"/>
+                            <text x="55" y="338" text-anchor="middle" class="node-text">КР-9</text>
+                            <text x="55" y="351" text-anchor="middle" class="node-text" style="font-size: 9px;">{{ element.temperature|floatformat:1 }}°</text>
+                        </g>
+                    {% elif element.name == "КР-10" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% elif element.status == 'alarm' %}status-alarm{% endif %}">
+                            <rect x="20" y="380" width="70" height="45" class="node-rect"/>
+                            <rect x="20" y="380" width="6" height="45" class="green-bar" rx="3"/>
+                            <text x="55" y="408" text-anchor="middle" class="node-text">КР-10</text>
+                            <text x="55" y="421" text-anchor="middle" class="node-text" style="font-size: 9px;">{{ element.temperature|floatformat:1 }}°</text>
+                        </g>
+                    {% elif element.name == "КР-10а" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% elif element.status == 'alarm' %}status-alarm{% endif %}">
+                            <rect x="20" y="450" width="70" height="45" class="node-rect"/>
+                            <rect x="20" y="450" width="6" height="45" class="green-bar" rx="3"/>
+                            <text x="55" y="478" text-anchor="middle" class="node-text">КР-10а</text>
+                            <text x="55" y="491" text-anchor="middle" class="node-text" style="font-size: 9px;">{{ element.temperature|floatformat:1 }}°</text>
+                        </g>
+                    {% elif element.name == "Т-27" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% elif element.status == 'alarm' %}status-alarm{% endif %}">
+                            <rect x="140" y="380" width="75" height="45" class="node-rect-round"/>
+                            <rect x="140" y="380" width="6" height="45" class="green-bar" rx="3"/>
+                            <text x="177" y="408" text-anchor="middle" class="node-text">Т-27</text>
+                            <text x="177" y="421" text-anchor="middle" class="node-text" style="font-size: 9px;">{{ element.temperature|floatformat:1 }}°</text>
+                        </g>
+                    {% elif element.name == "Т-27А" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% elif element.status == 'alarm' %}status-alarm{% endif %}">
+                            <rect x="140" y="450" width="75" height="45" class="node-rect-round"/>
+                            <rect x="140" y="450" width="6" height="45" class="green-bar" rx="3"/>
+                            <text x="177" y="478" text-anchor="middle" class="node-text">Т-27А</text>
+                            <text x="177" y="491" text-anchor="middle" class="node-text" style="font-size: 9px;">{{ element.temperature|floatformat:1 }}°</text>
+                        </g>
+                    {% elif element.name == "Т-27Б" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% elif element.status == 'alarm' %}status-alarm{% endif %}">
+                            <rect x="140" y="520" width="75" height="45" class="node-rect-round"/>
+                            <rect x="140" y="520" width="6" height="45" class="green-bar" rx="3"/>
+                            <text x="177" y="548" text-anchor="middle" class="node-text">Т-27Б</text>
+                            <text x="177" y="561" text-anchor="middle" class="node-text" style="font-size: 9px;">{{ element.temperature|floatformat:1 }}°</text>
+                        </g>
+                    {% elif element.name == "Т-27В" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% elif element.status == 'alarm' %}status-alarm{% endif %}">
+                            <rect x="140" y="590" width="75" height="45" class="node-rect-round"/>
+                            <rect x="140" y="590" width="6" height="45" class="green-bar" rx="3"/>
+                            <text x="177" y="618" text-anchor="middle" class="node-text">Т-27В</text>
+                            <text x="177" y="631" text-anchor="middle" class="node-text" style="font-size: 9px;">{{ element.temperature|floatformat:1 }}°</text>
+                        </g>
+                    {% elif element.name == "ОЖ-2" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% endif %}">
+                            <circle cx="330" cy="40" r="25" class="node-circle"/>
+                            <text x="330" y="44" text-anchor="middle" class="node-text">ОЖ-2</text>
+                        </g>
+                    {% elif element.name == "ОЖ-1" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% endif %}">
+                            <circle cx="330" cy="125" r="25" class="node-circle"/>
+                            <text x="330" y="129" text-anchor="middle" class="node-text">ОЖ-1</text>
+                        </g>
+                    {% elif element.name == "РД-1" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% elif element.status == 'alarm' %}status-alarm{% endif %}">
+                            <rect x="230" y="160" width="60" height="50" class="node-rect"/>
+                            <text x="260" y="180" text-anchor="middle" class="node-text">РД-1</text>
+                            <text x="260" y="195" text-anchor="middle" class="node-text" style="font-size: 9px;">{{ element.level|floatformat:1 }}%</text>
+                        </g>
+                    {% elif element.name == "РД-2" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% elif element.status == 'alarm' %}status-alarm{% endif %}">
+                            <rect x="300" y="160" width="60" height="50" class="node-rect"/>
+                            <text x="330" y="180" text-anchor="middle" class="node-text">РД-2</text>
+                            <text x="330" y="195" text-anchor="middle" class="node-text" style="font-size: 9px;">{{ element.level|floatformat:1 }}%</text>
+                        </g>
+                    {% elif element.name == "АДК-3" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% elif element.status == 'alarm' %}status-alarm{% endif %}">
+                            <rect x="430" y="50" width="60" height="60" class="node-rect"/>
+                            <text x="460" y="85" text-anchor="middle" class="node-text">АДК-3</text>
+                        </g>
+                    {% elif element.name == "АДК-2" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% elif element.status == 'alarm' %}status-alarm{% endif %}">
+                            <rect x="590" y="50" width="60" height="60" class="node-rect"/>
+                            <text x="620" y="85" text-anchor="middle" class="node-text">АДК-2</text>
+                        </g>
+                    {% elif element.name == "АДК-1" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% elif element.status == 'alarm' %}status-alarm{% endif %}">
+                            <rect x="750" y="50" width="60" height="60" class="node-rect"/>
+                            <text x="780" y="85" text-anchor="middle" class="node-text">АДК-1</text>
+                        </g>
+                    {% elif element.name == "ДАО-550" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% elif element.status == 'alarm' %}status-alarm{% endif %}">
+                            <rect x="910" y="30" width="110" height="110" class="node-rect"/>
+                            <text x="965" y="90" text-anchor="middle" class="node-text">ДАО-550</text>
+                        </g>
+                    {% elif element.name == "ПС-3" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% endif %}">
+                            <ellipse cx="450" cy="220" rx="20" ry="30" class="node-rect"/>
+                            <text x="450" y="225" text-anchor="middle" class="node-text">ПС-3</text>
+                        </g>
+                    {% elif element.name == "ПС-2" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% endif %}">
+                            <ellipse cx="610" cy="220" rx="20" ry="30" class="node-rect"/>
+                            <text x="610" y="225" text-anchor="middle" class="node-text">ПС-2</text>
+                        </g>
+                    {% elif element.name == "ПС-1" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% endif %}">
+                            <ellipse cx="770" cy="220" rx="20" ry="30" class="node-rect"/>
+                            <text x="770" y="225" text-anchor="middle" class="node-text">ПС-1</text>
+                        </g>
+                    {% elif element.name == "ПС-4" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% endif %}">
+                            <ellipse cx="1020" cy="220" rx="20" ry="30" class="node-rect"/>
+                            <text x="1020" y="225" text-anchor="middle" class="node-text">ПС-4</text>
+                        </g>
+                    {% elif element.name == "МО-3" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% endif %}">
+                            <rect x="520" y="360" width="60" height="60" class="node-rect"/>
+                            <text x="550" y="395" text-anchor="middle" class="node-text">МО-3</text>
+                        </g>
+                    {% elif element.name == "МО-2" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% endif %}">
+                            <rect x="620" y="360" width="60" height="60" class="node-rect"/>
+                            <text x="650" y="395" text-anchor="middle" class="node-text">МО-2</text>
+                        </g>
+                    {% elif element.name == "МО-1" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% endif %}">
+                            <rect x="720" y="360" width="60" height="60" class="node-rect"/>
+                            <text x="750" y="395" text-anchor="middle" class="node-text">МО-1</text>
+                        </g>
+                    {% elif element.name == "МС-1" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% endif %}">
+                            <rect x="820" y="360" width="60" height="60" class="node-rect"/>
+                            <text x="850" y="385" text-anchor="middle" class="node-text">МС-1</text>
+                            <text x="850" y="400" text-anchor="middle" class="node-text" style="font-size: 9px;">{{ element.level|floatformat:1 }}%</text>
+                        </g>
+                    {% elif element.name == "АВО-5.5а" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% endif %}">
+                            <rect x="280" y="400" width="70" height="60" class="node-rect"/>
+                            <text x="315" y="435" text-anchor="middle" class="node-text">АВО-5.5а</text>
+                        </g>
+                    {% elif element.name == "ГП-1" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% endif %}">
+                            <rect x="370" y="405" width="80" height="55" class="node-rect"/>
+                            <text x="410" y="438" text-anchor="middle" class="node-text">ГП-1</text>
+                        </g>
+                    {% elif element.name == "КТВ-1" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% endif %}">
+                            <rect x="350" y="650" width="60" height="70" class="node-rect"/>
+                            <text x="380" y="680" text-anchor="middle" class="node-text">КТВ-1</text>
+                            <text x="380" y="695" text-anchor="middle" class="node-text" style="font-size: 9px;">{{ element.level|floatformat:1 }}%</text>
+                        </g>
+                    {% elif element.name == "КТВ-2" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% endif %}">
+                            <rect x="470" y="650" width="60" height="70" class="node-rect"/>
+                            <text x="500" y="680" text-anchor="middle" class="node-text">КТВ-2</text>
+                            <text x="500" y="695" text-anchor="middle" class="node-text" style="font-size: 9px;">{{ element.level|floatformat:1 }}%</text>
+                        </g>
+                    {% elif element.name == "КТВ-3" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% endif %}">
+                            <rect x="590" y="650" width="60" height="70" class="node-rect"/>
+                            <text x="620" y="680" text-anchor="middle" class="node-text">КТВ-3</text>
+                            <text x="620" y="695" text-anchor="middle" class="node-text" style="font-size: 9px;">{{ element.level|floatformat:1 }}%</text>
+                        </g>
+                    {% elif element.name == "КТВ-4" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% endif %}">
+                            <rect x="710" y="650" width="60" height="70" class="node-rect"/>
+                            <text x="740" y="680" text-anchor="middle" class="node-text">КТВ-4</text>
+                            <text x="740" y="695" text-anchor="middle" class="node-text" style="font-size: 9px;">{{ element.level|floatformat:1 }}%</text>
+                        </g>
+                    {% elif element.name == "КТВ-5" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% endif %}">
+                            <rect x="830" y="650" width="60" height="70" class="node-rect"/>
+                            <text x="860" y="680" text-anchor="middle" class="node-text">КТВ-5</text>
+                            <text x="860" y="695" text-anchor="middle" class="node-text" style="font-size: 9px;">{{ element.level|floatformat:1 }}%</text>
+                        </g>
+                    {% elif element.name == "РЛ-1" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% elif element.status == 'alarm' %}status-alarm{% endif %}">
+                            <rect x="1100" y="380" width="90" height="50" class="node-rect-round"/>
+                            <text x="1145" y="400" text-anchor="middle" class="node-text">РЛ-1</text>
+                            <text x="1145" y="415" text-anchor="middle" class="node-text" style="font-size: 9px;">{{ element.level|floatformat:1 }}%</text>
+                        </g>
+                    {% elif element.name == "РЛ-2" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% elif element.status == 'alarm' %}status-alarm{% endif %}">
+                            <rect x="1100" y="470" width="90" height="50" class="node-rect-round"/>
+                            <text x="1145" y="490" text-anchor="middle" class="node-text">РЛ-2</text>
+                            <text x="1145" y="505" text-anchor="middle" class="node-text" style="font-size: 9px;">{{ element.level|floatformat:1 }}%</text>
+                        </g>
+                    {% elif element.name == "РЛ-3" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% elif element.status == 'alarm' %}status-alarm{% endif %}">
+                            <rect x="1100" y="560" width="90" height="50" class="node-rect-round"/>
+                            <text x="1145" y="580" text-anchor="middle" class="node-text">РЛ-3</text>
+                            <text x="1145" y="595" text-anchor="middle" class="node-text" style="font-size: 9px;">{{ element.level|floatformat:1 }}%</text>
+                        </g>
+                    {% elif element.name == "РЛ-4" %}
+                        <g onclick="showElementModal({{ element.id }}, '{{ element.name }}')" class="clickable {% if element.status == 'stopped' %}status-stopped{% elif element.status == 'alarm' %}status-alarm{% endif %}">
+                            <rect x="1050" y="730" width="220" height="90" class="node-rect-round"/>
+                            <text x="1160" y="770" text-anchor="middle" class="node-text">РЛ-4</text>
+                            <text x="1160" y="790" text-anchor="middle" class="node-text" style="font-size: 9px;">{{ element.level|floatformat:1 }}%</text>
+                        </g>
+                    {% endif %}
                 {% endfor %}
+            </g>
+        </svg>
+    </div>
+</div>
+
+<div class="modal fade modal-ice" id="elementModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Аппарат</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="currentElementId">
+                <div id="modalDynamicContent"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+// Глобальная переменная для хранения данных текущего элемента
+let currentElementData = null;
+
+// Функция для получения CSRF токена
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function showElementModal(id, name) {
+    document.getElementById('modalTitle').innerHTML = name;
+    document.getElementById('modalDynamicContent').innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2">Загрузка...</p>
+        </div>
+    `;
+    document.getElementById('currentElementId').value = id;
+    
+    const modal = new bootstrap.Modal(document.getElementById('elementModal'));
+    modal.show();
+    
+    fetch(`/element/${id}/data/`)
+        .then(response => response.json())
+        .then(data => {
+            currentElementData = data;
+            const content = document.getElementById('modalDynamicContent');
+            const elementType = data.element_type;
+            const isStopped = data.status === 'stopped';
+            
+            let html = '';
+            
+            // Определяем тип элемента и показываем соответствующие параметры
+            if (elementType === 'rd' || elementType === 'rl') {
+                // Ресиверы дренажные и линейные
+                html = `
+                    <div class="mb-4 text-center">
+                        <label class="form-label fw-bold">💨 Давление</label>
+                        <div class="param-value">${data.pressure.toFixed(1)} бар</div>
+                        ${!isStopped ? `
+                            <input type="number" class="form-control mt-2" id="editPressure" 
+                                   value="${data.pressure}" step="0.1">
+                        ` : ''}
+                    </div>
+                    <div class="level-container">
+                        <label class="form-label fw-bold">💧 Уровень жидкости</label>
+                        <div class="level-bar">
+                            <div class="level-fill" style="width: ${data.level}%"></div>
+                            <div class="level-marker" style="left: ${data.level}%"></div>
+                        </div>
+                        <div class="level-labels">
+                            <span>0%</span>
+                            <span>50%</span>
+                            <span>100%</span>
+                        </div>
+                        <div class="level-value">${data.level.toFixed(1)}%</div>
+                        ${!isStopped ? `
+                            <input type="range" class="form-range mt-3" id="editLevel" 
+                                   min="0" max="100" value="${data.level}" step="0.5">
+                            <div class="text-center mt-1">
+                                <span id="levelDisplay">${data.level.toFixed(1)}%</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            } else if (elementType === 'ps' || elementType === 'ktv') {
+                // Промсосуды и конденсаторы - только уровень
+                html = `
+                    <div class="level-container">
+                        <label class="form-label fw-bold">💧 Уровень</label>
+                        <div class="level-bar">
+                            <div class="level-fill" style="width: ${data.level}%"></div>
+                            <div class="level-marker" style="left: ${data.level}%"></div>
+                        </div>
+                        <div class="level-labels">
+                            <span>0%</span>
+                            <span>50%</span>
+                            <span>100%</span>
+                        </div>
+                        <div class="level-value">${data.level.toFixed(1)}%</div>
+                        ${!isStopped ? `
+                            <input type="range" class="form-range mt-3" id="editLevel" 
+                                   min="0" max="100" value="${data.level}" step="0.5">
+                            <div class="text-center mt-1">
+                                <span id="levelDisplay">${data.level.toFixed(1)}%</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            } else if (elementType === 'ms') {
+                // Маслосборник - уровень и давление
+                html = `
+                    <div class="mb-4 text-center">
+                        <label class="form-label fw-bold">💨 Давление</label>
+                        <div class="param-value">${data.pressure.toFixed(1)} бар</div>
+                        ${!isStopped ? `
+                            <input type="number" class="form-control mt-2" id="editPressure" 
+                                   value="${data.pressure}" step="0.1">
+                        ` : ''}
+                    </div>
+                    <div class="level-container">
+                        <label class="form-label fw-bold">💧 Уровень масла</label>
+                        <div class="level-bar">
+                            <div class="level-fill" style="width: ${data.level}%"></div>
+                            <div class="level-marker" style="left: ${data.level}%"></div>
+                        </div>
+                        <div class="level-labels">
+                            <span>0%</span>
+                            <span>50%</span>
+                            <span>100%</span>
+                        </div>
+                        <div class="level-value">${data.level.toFixed(1)}%</div>
+                        ${!isStopped ? `
+                            <input type="range" class="form-range mt-3" id="editLevel" 
+                                   min="0" max="100" value="${data.level}" step="0.5">
+                            <div class="text-center mt-1">
+                                <span id="levelDisplay">${data.level.toFixed(1)}%</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            } else if (elementType === 'compressor') {
+                // Компрессоры - температуры нагнетания
+                html = `
+                    <div class="mb-4 text-center">
+                        <label class="form-label fw-bold">🔥 Температура нагнетания 1 ступени</label>
+                        <div class="param-value">${data.discharge_temp_stage1.toFixed(1)}°C</div>
+                        ${!isStopped ? `
+                            <input type="number" class="form-control mt-2" id="editDischarge1" 
+                                   value="${data.discharge_temp_stage1}" step="0.1">
+                        ` : ''}
+                    </div>
+                    <div class="mb-4 text-center">
+                        <label class="form-label fw-bold">🔥🔥 Температура нагнетания 2 ступени</label>
+                        <div class="param-value">${data.discharge_temp_stage2.toFixed(1)}°C</div>
+                        ${!isStopped ? `
+                            <input type="number" class="form-control mt-2" id="editDischarge2" 
+                                   value="${data.discharge_temp_stage2}" step="0.1">
+                        ` : ''}
+                    </div>
+                `;
+            } else {
+                // Кристаллизаторы, теплообменники и остальные
+                html = `
+                    <div class="mb-4 text-center">
+                        <label class="form-label fw-bold">🌡️ Температура сырья</label>
+                        <div class="param-value">${data.temperature.toFixed(1)}°C</div>
+                        ${!isStopped ? `
+                            <input type="number" class="form-control mt-2" id="editTemp" 
+                                   value="${data.temperature}" step="0.1">
+                        ` : ''}
+                    </div>
+                    <div class="mb-4 text-center">
+                        <label class="form-label fw-bold">🧊 Температура аммиака</label>
+                        <div class="param-value">${data.ammonia_temp.toFixed(1)}°C</div>
+                        ${!isStopped ? `
+                            <input type="number" class="form-control mt-2" id="editAmmonia" 
+                                   value="${data.ammonia_temp}" step="0.1">
+                        ` : ''}
+                    </div>
+                    <div class="mb-4 text-center">
+                        <label class="form-label fw-bold">💨 Давление</label>
+                        <div class="param-value">${data.pressure.toFixed(1)} бар</div>
+                        ${!isStopped ? `
+                            <input type="number" class="form-control mt-2" id="editPressure" 
+                                   value="${data.pressure}" step="0.1">
+                        ` : ''}
+                    </div>
+                `;
+            }
+            
+            // Добавляем статус и кнопки управления
+            html += `
+                <div class="alert alert-${getStatusColor(data.status)} mt-3">
+                    <i class="bi bi-info-circle"></i> 
+                    Статус: ${getStatusText(data.status)}
+                </div>
+                
+                <div class="d-flex gap-2 mt-3">
+                    ${!isStopped ? `
+                        <button class="btn btn-success flex-fill" onclick="saveChanges(${data.id})">
+                            <i class="bi bi-check-lg"></i> Сохранить
+                        </button>
+                        <button class="btn btn-danger flex-fill" onclick="confirmStop(${data.id}, '${data.name}')">
+                            <i class="bi bi-stop-circle"></i> Остановить
+                        </button>
+                    ` : `
+                        <button class="btn btn-primary flex-fill" onclick="startElement(${data.id}, '${data.name}')">
+                            <i class="bi bi-play-circle"></i> Запустить
+                        </button>
+                    `}
+                </div>
+            `;
+            
+            content.innerHTML = html;
+            
+            // Добавляем обработчики для слайдеров
+            if (!isStopped) {
+                const levelSlider = document.getElementById('editLevel');
+                const levelDisplay = document.getElementById('levelDisplay');
+                if (levelSlider && levelDisplay) {
+                    levelSlider.addEventListener('input', function() {
+                        levelDisplay.textContent = parseFloat(this.value).toFixed(1) + '%';
+                        // Обновляем шкалу
+                        document.querySelector('.level-fill').style.width = this.value + '%';
+                        document.querySelector('.level-marker').style.left = this.value + '%';
+                        document.querySelector('.level-value').textContent = parseFloat(this.value).toFixed(1) + '%';
+                    });
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            document.getElementById('modalDynamicContent').innerHTML = 
+                '<div class="alert alert-danger">Ошибка загрузки данных</div>';
+        });
+}
+
+function getStatusColor(status) {
+    const colors = {
+        'normal': 'success',
+        'warning': 'warning',
+        'alarm': 'danger',
+        'stopped': 'secondary'
+    };
+    return colors[status] || 'info';
+}
+
+function getStatusText(status) {
+    const texts = {
+        'normal': '✅ В работе',
+        'warning': '⚠️ Внимание',
+        'alarm': '🔴 Авария',
+        'stopped': '⏹️ Остановлен'
+    };
+    return texts[status] || status;
+}
+
+function saveChanges(elementId) {
+    const data = {
+        id: elementId
+    };
+    
+    // Собираем измененные значения
+    if (document.getElementById('editTemp')) {
+        data.temperature = parseFloat(document.getElementById('editTemp').value);
+    }
+    if (document.getElementById('editAmmonia')) {
+        data.ammonia_temp = parseFloat(document.getElementById('editAmmonia').value);
+    }
+    if (document.getElementById('editPressure')) {
+        data.pressure = parseFloat(document.getElementById('editPressure').value);
+    }
+    if (document.getElementById('editLevel')) {
+        data.level = parseFloat(document.getElementById('editLevel').value);
+    }
+    if (document.getElementById('editDischarge1')) {
+        data.discharge_temp_stage1 = parseFloat(document.getElementById('editDischarge1').value);
+    }
+    if (document.getElementById('editDischarge2')) {
+        data.discharge_temp_stage2 = parseFloat(document.getElementById('editDischarge2').value);
+    }
+    
+    fetch('/api/update-element/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ ' + (data.message || 'Изменения сохранены!'));
+            location.reload();
+        } else {
+            alert('❌ Ошибка: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка:', error);
+        alert('❌ Ошибка при сохранении');
+    });
+}
+
+function confirmStop(elementId, elementName) {
+    if (confirm(`⚠️ Вы уверены, что хотите остановить ${elementName}?\n\nЭто действие потребует подтверждения.`)) {
+        if (confirm(`🛑 ПОДТВЕРДИТЕ ОСТАНОВКУ ${elementName}\n\nАппарат будет остановлен. Продолжить?`)) {
+            toggleStatus(elementId, 'stop');
+        }
+    }
+}
+
+function startElement(elementId, elementName) {
+    toggleStatus(elementId, 'start');
+}
+
+function toggleStatus(elementId, action) {
+    fetch('/api/toggle-status/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            id: elementId,
+            action: action
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`✅ ${data.message}`);
+            location.reload();
+        } else {
+            alert('❌ Ошибка: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка:', error);
+        alert('❌ Ошибка при выполнении операции');
+    });
+}
+
+function startRandomUpdates() {
+    const ids = [{% for e in elements %}{{ e.id }},{% endfor %}];
+    setInterval(() => {
+        if (ids.length === 0) return;
+        const id = ids[Math.floor(Math.random() * ids.length)];
+        const delta = (Math.random() * 0.8 - 0.4).toFixed(1);
+        
+        fetch('/api/random-update/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({id: id, delta: parseFloat(delta)})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const modal = document.getElementById('elementModal');
+                if (!modal.classList.contains('show')) {
+                    location.reload();
+                }
+            }
+        })
+        .catch(() => {});
+    }, 5000);
+}
+
+document.addEventListener('DOMContentLoaded', startRandomUpdates);
+</script>
 {% endblock %}
