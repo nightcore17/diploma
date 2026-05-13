@@ -1,0 +1,198 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Распоряжения{% endblock %}
+
+{% block content %}
+<style>
+    .orders-wrapper {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .orders-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+    
+    .orders-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #2d3748;
+    }
+    
+    .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .btn-blue {
+        background: #4299e1;
+        color: #fff;
+        border: none;
+    }
+    .btn-blue:hover {
+        background: #3182ce;
+    }
+    
+    .stats-row {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    
+    .stat-item {
+        background: #fff;
+        padding: 14px 22px;
+        border-radius: 12px;
+        border: 1px solid #eef1f4;
+        font-size: 14px;
+        text-align: center;
+        flex: 1;
+    }
+    
+    .stat-item b {
+        display: block;
+        font-size: 28px;
+        font-weight: 300;
+        color: #4299e1;
+    }
+    
+    .orders-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .order-card {
+        background: #fff;
+        border: 1px solid #eef1f4;
+        border-radius: 14px;
+        padding: 18px 20px;
+        border-left: 4px solid #e2e8f0;
+        transition: all 0.2s;
+    }
+    
+    .order-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+    }
+    
+    .order-card.active {
+        border-left-color: #4299e1;
+    }
+    
+    .order-card.in_progress {
+        border-left-color: #ed8936;
+    }
+    
+    .order-card.completed {
+        border-left-color: #48bb78;
+        opacity: 0.7;
+    }
+    
+    .order-card.cancelled {
+        border-left-color: #e53e3e;
+        opacity: 0.5;
+    }
+    
+    .order-from {
+        font-size: 11px;
+        color: #a0aec0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 6px;
+    }
+    
+    .order-description {
+        font-size: 15px;
+        color: #2d3748;
+        margin-bottom: 8px;
+        line-height: 1.4;
+    }
+    
+    .order-meta {
+        display: flex;
+        gap: 16px;
+        font-size: 12px;
+        color: #a0aec0;
+    }
+    
+    .order-status {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 500;
+    }
+    
+    .status-active { background: #ebf8ff; color: #2b6cb0; }
+    .status-in_progress { background: #fffaf0; color: #c05621; }
+    .status-completed { background: #f0fff4; color: #276749; }
+    .status-cancelled { background: #fff5f5; color: #c53030; }
+    
+    .orders-empty {
+        text-align: center;
+        padding: 80px 20px;
+        color: #a0aec0;
+    }
+</style>
+
+<div class="orders-wrapper">
+    <div class="orders-header">
+        <div class="orders-title">📋 Распоряжения</div>
+        <a href="/admin/main/order/add/" class="btn btn-blue" target="_blank">
+            + Новое распоряжение
+        </a>
+    </div>
+    
+    <div class="stats-row">
+        <div class="stat-item">
+            <b>{{ active_orders }}</b>
+            📋 Активных
+        </div>
+        <div class="stat-item">
+            <b>{{ in_progress_orders }}</b>
+            🔄 Выполняются
+        </div>
+        <div class="stat-item">
+            <b>{{ completed_orders }}</b>
+            ✅ Выполнено
+        </div>
+    </div>
+    
+    <div class="orders-list">
+        {% for order in orders %}
+            <div class="order-card {{ order.status }}">
+                <div class="order-from">
+                    {% if order.order_from == 'chief' %}👔 Начальник установки
+                    {% elif order.order_from == 'deputy' %}👔 Зам. начальника
+                    {% else %}🔧 Механик установки{% endif %}
+                    <span class="order-status status-{{ order.status }}">{{ order.get_status_display }}</span>
+                </div>
+                <div class="order-description">{{ order.description }}</div>
+                <div class="order-meta">
+                    <span>🏭 Бригада: {{ order.brigade.name }}</span>
+                    {% if order.deadline %}
+                        <span>⏰ Срок: {{ order.deadline|date:"d.m.Y H:i" }}</span>
+                    {% endif %}
+                    <span>📅 Создано: {{ order.created_at|date:"d.m.Y" }}</span>
+                </div>
+            </div>
+        {% empty %}
+            <div class="orders-empty">
+                <p style="font-size:48px;">📋</p>
+                <p>Нет распоряжений</p>
+                <p><a href="/admin/main/order/add/" target="_blank">Добавить распоряжение</a></p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -274,17 +274,20 @@
 <body>
     <nav class="navbar navbar-expand-lg glass-nav">
         <div class="container">
-            <!-- ✅ Исправлено: 'home' → 'index' -->
+            <!-- Логотип -->
             <a class="navbar-brand d-flex align-items-center" href="{% url 'index' %}">
                 <img src="{% static 'img/logo.png' %}" alt="Башнефть" height="40" class="me-3" onerror="this.style.display='none'">
                 <span>Установка 40/2</span>
             </a>
+            
+            <!-- Кнопка для мобильных -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            
+            <!-- Навигация -->
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <!-- ✅ Исправлены URL-ссылки -->
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}" href="{% url 'index' %}">
                             <i class="bi bi-house-door"></i> Главная
@@ -292,7 +295,22 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'full_schema' %}active{% endif %}" href="{% url 'full_schema' %}">
-                            <i class="bi bi-diagram-3"></i> Полная схема
+                            <i class="bi bi-diagram-3"></i> Схема
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}" href="{% url 'analytics' %}">
+                            <i class="bi bi-graph-up"></i> Аналитика
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'shift_log' %}active{% endif %}" href="{% url 'shift_log' %}">
+                            <i class="bi bi-journal-text"></i> Вахта
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'orders' %}active{% endif %}" href="{% url 'orders' %}">
+                            <i class="bi bi-clipboard-check"></i> Распоряжения
                         </a>
                     </li>
                     <li class="nav-item">
@@ -300,26 +318,12 @@
                             <i class="bi bi-cloud-sun"></i> Погода
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-graph-up"></i> Аналитика
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-clock-history"></i> История
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-gear"></i> Настройки
-                        </a>
-                    </li>
                 </ul>
             </div>
         </div>
     </nav>
 
+    <!-- Основной контент -->
     <div class="container-fluid main-container">
         <!-- Сообщения Django -->
         {% if messages %}
